@@ -1,8 +1,15 @@
+import javafx.beans.binding.IntegerBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.HBox;
@@ -11,30 +18,60 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Map;
+import java.net.URL;
+import java.util.*;
 
-public class ChooseArmyUX {
+public class ChooseArmyUX implements Initializable {
 
-    @FXML private Label turingsLabel;
+    @FXML
+    private Pane mainPane;
 
-    @FXML private VBox spinners;
+    @FXML
+    private Label turingsLabel;
 
-    @FXML private Pane mainPane;
+    @FXML
+    private VBox spinners;
 
+    @FXML
+    private Button confirmButton;
+
+    private FXMLLoader root;
     private Map<Label,Spinner<Integer>> units;
+    private Map<String,Integer> army = null;
+    ChooseArmyNotifier notifier;
+    Stage pStage;
+    Scene scene;
 
-    public void bindToTuringsLabel(StringProperty turings){
-        turingsLabel.textProperty().bind(turings);
+    public ChooseArmyUX() throws Exception{
+        root = new FXMLLoader(getClass().getResource("chooseArmy.fxml"));
+        root.setController(this);
+        mainPane = root.load();
+    }
+
+    public void setNotifier(Observer observer){
+        notifier = new ChooseArmyNotifier(observer);
+    }
+
+    @FXML
+    void confirmInput(ActionEvent event) {
+        army = new HashMap<>();
+        units.keySet().forEach(k->army.put(k.getText(),units.get(k).getValue()));
+        pStage.close();
+        notifier.notifyController("getArmy");
+    }
+
+    public void bindToTuringsLabel(IntegerProperty turings){
+        turingsLabel.textProperty().bind((new SimpleStringProperty("Turings: ")).concat(turings.toString()));
     }
 
     public void setStage(Stage primaryStage) throws IOException {
         primaryStage.setTitle("Loader");
-        Scene scene = new Scene(mainPane,500,100);
+        scene = new Scene(mainPane,700,400);
         primaryStage.setScene(scene);
     }
 
-    public void setArmyUnits(Map<String,Integer> units){
+    public void setArmyUnitsSpinners(Map<String,Integer> units){
+        this.units = new HashMap<>();
         units.keySet().forEach(k ->{
             Label label = new Label();
             label.textProperty().setValue(k);
@@ -47,12 +84,42 @@ public class ChooseArmyUX {
             hBox.getChildren().add(this.units.get(k));
             spinners.getChildren().add(hBox);
         });
+        spinners.getChildren().sorted();
     }
 
     public void launchLoader() throws Exception {
-        Stage pStage = new Stage();
+        pStage = new Stage();
         setStage(pStage);
         pStage.show();
     }
 
+    public Map<String,Integer> getArmy(){
+        return army;
+    }
+
+    public VBox getSpinners(){
+        return spinners;
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+
+    }
+
+    private class ChooseArmyNotifier extends Observable {
+
+        public ChooseArmyNotifier(Observer observer){
+            setObserver(observer);
+        }
+
+        public void setObserver(Observer observer){
+            this.addObserver(observer);
+        }
+
+        public void notifyController(String mess){
+            setChanged();
+            notifyObservers(mess);
+        }
+
+    }
 }

@@ -2,6 +2,8 @@ import generated.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
+
 import generated.*;
 
 public class ArmyUnit implements Cloneable, Serializable {
@@ -245,4 +247,43 @@ public class ArmyUnit implements Cloneable, Serializable {
         return retString;
     }
 
+    public static ArrayList<String> findDuplicatesName(generated.Army army){
+        ArrayList<String> dups=new ArrayList<>();
+        ArrayList<String> checked=new ArrayList<>();
+        for (generated.Unit un:army.getUnit()){
+            if (checked.contains(un.getType())){
+                dups.add(un.getType());
+            }
+            else{
+                checked.add(un.getType());
+            }
+        }
+        return dups;
+    }
+
+    public static ArrayList<Integer> findDuplicatesId(generated.Army army){
+        ArrayList<Integer> dups=new ArrayList<>();
+        ArrayList<Integer> checked=new ArrayList<>();
+        for (generated.Unit un:army.getUnit()){
+            if (checked.contains(Integer.valueOf(un.getRank()))){
+                dups.add(Integer.valueOf(un.getRank()));
+            }
+            else{
+                checked.add(Integer.valueOf(un.getRank()));
+            }
+        }
+        return dups;
+    }
+
+    public static Integer verifyInOrder(generated.Army army){
+        ArrayList<Integer> ranks = new ArrayList<>();
+        army.getUnit().forEach(un->ranks.add(Integer.valueOf(un.getRank())));
+        ranks.sort(Integer::compareTo);
+        for (int i = 0;i<ranks.size();++i){
+            if (ranks.get(i) != (i+1)){
+                return (i+1);
+            }
+        }
+        return -1;
+    }
 }

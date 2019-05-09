@@ -1,5 +1,6 @@
 import generated.*;
 
+import java.awt.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
@@ -8,17 +9,29 @@ public class Player implements Cloneable, Serializable {
     public static final Double UNDERDOG_WINNING_FACTOR=0.5;
     public static Integer numOfPlayers=0;
 
+    private Integer id;
     private String name;
     private ArrayList<TeritoryUnit> conqueredTeritories;
     private Integer turings;
+    private Color color;
 
     public Player(){
         conqueredTeritories=new ArrayList<>();
     }
 
-    public Player(String name){
+    public Player(Integer ID,String name, Color color){
         conqueredTeritories=new ArrayList<>();
         setName(name);
+        setColor(color);
+    }
+
+
+    public void setId(Integer id){
+        this.id = id;
+    }
+
+    public Integer getId(){
+        return id;
     }
 
     public void setName(String userName){
@@ -38,6 +51,14 @@ public class Player implements Cloneable, Serializable {
 
     public String getName(){
         return name;
+    }
+
+    public void setColor(Color color){
+        this.color = color;
+    }
+
+    public Color getColor(){
+        return color;
     }
 
     public ArrayList<TeritoryUnit> getConqueredTeritories(){
@@ -199,7 +220,13 @@ public class Player implements Cloneable, Serializable {
 
     @Override
     public String toString() {
-        return name;
+        StringBuilder retString  = new StringBuilder(new String());
+        retString.append(name+System.lineSeparator());
+        retString.append("Turings: "+turings.toString()+System.lineSeparator());
+        retString.append("Conquered territories: "+System.lineSeparator());
+        conqueredTeritories.forEach(ter->retString.append(ter.getId().toString()+" "));
+        retString.append(System.lineSeparator());
+        return retString.toString();
     }
 
     public String showDetails(){
@@ -266,6 +293,20 @@ public class Player implements Cloneable, Serializable {
             totalProfit+=conqTer.getProfit();
         }
         return totalProfit;
+    }
+
+    public static ArrayList<Integer> findDuplicates(Players plas){
+        ArrayList<Integer> dups=new ArrayList<>();
+        ArrayList<Integer> checked=new ArrayList<>();
+        for (generated.Player pla:plas.getPlayer()){
+            if (checked.contains(pla.getId().intValue())){
+                dups.add(pla.getId().intValue());
+            }
+            else{
+                checked.add(pla.getId().intValue());
+            }
+        }
+        return dups;
     }
 
     @Override

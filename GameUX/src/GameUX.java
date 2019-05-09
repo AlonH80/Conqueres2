@@ -1,4 +1,7 @@
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -15,24 +18,29 @@ import javafx.fxml.FXML;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Observable;
 import java.util.Observer;
 
 public class GameUX extends Observable {
     @FXML private ButtonBar gameAction;
-
     @FXML private TitledPane loadVbox;
-
     @FXML private Label playerInfo;
-
     @FXML private Label teritoryInfo;
-
     @FXML private GridPane gameBoard;
-
     @FXML private ButtonBar roundAction;
+    @FXML private Button newGameBtn;
+    @FXML private Button newRoundBtn;
+    @FXML private Button historyBtn;
+    @FXML private Button saveGameBtn;
+    @FXML private Button loadXmlBtn;
+    @FXML private Button loadSavelBtn;
+    @FXML private Button undoBtn;
 
     private FXMLLoader root;
     private Parent mainPane;
+    private Stage pStage;
 
     public GameUX(){
         root = new FXMLLoader(getClass().getResource("conqueresUI.fxml"));
@@ -60,7 +68,11 @@ public class GameUX extends Observable {
     void doNothing(ActionEvent event) { setChanged(); notifyObservers("doNothing"); }
 
     @FXML
-    void exit(ActionEvent event) { setChanged(); notifyObservers("exit"); }
+    void exit(ActionEvent event) {
+        setChanged();
+        notifyObservers("exit");
+        pStage.close();
+    }
 
     @FXML
     void history(ActionEvent event) { setChanged(); notifyObservers("history"); }
@@ -113,13 +125,32 @@ public class GameUX extends Observable {
         teritoryInfo.textProperty().bind(stringProperty);
     }
 
+    public void bindInGameButtonsAccess(BooleanBinding bool){
+        newGameBtn.disableProperty().bind(bool);
+    }
+
+    public void bindLoadMenuButtonsAccess(BooleanBinding bool){
+        loadXmlBtn.disableProperty().bind(bool);
+        loadSavelBtn.disableProperty().bind(bool);
+    }
+
+    public void bindInRoundButton(BooleanBinding bool){
+        newRoundBtn.disableProperty().bind(bool);
+        undoBtn.disableProperty().bind(bool);
+    }
+
+    public void bindRoundActionButtons(BooleanBinding bool){
+        roundAction.getButtons().forEach(b->b.disableProperty().bind(bool));
+    }
+
     public void setContoller(Observer observer){
         addObserver(observer);
     }
 
     public void setStage(Stage primaryStage) throws IOException {
+        pStage = primaryStage;
         primaryStage.setTitle("Conqueres");
-        disableRoundAction();
+        //disableRoundAction();
         Scene scene = new Scene(mainPane,800,800);
         primaryStage.setScene(scene);
     }
@@ -136,14 +167,6 @@ public class GameUX extends Observable {
                 gameBoard.add(cell, i, j);
             }
         }
-    }
-
-    public void activateRoundAction(){
-        roundAction.getButtons().forEach(b->b.setDisable(false));
-    }
-
-    public void disableRoundAction(){
-        roundAction.getButtons().forEach(b->b.setDisable(true));
     }
 
     public void setLoaders(Boolean cond){

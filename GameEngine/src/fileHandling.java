@@ -76,7 +76,7 @@ public class fileHandling {
     public static void objToFile(GameEngine obj, String fileName){
         try (ObjectOutputStream out =
                      new ObjectOutputStream(
-                             new FileOutputStream(csfFilesPath+"\\"+fileName))) {
+                             new FileOutputStream(fileName+".csf"))) {
             out.writeObject(obj);
             out.flush();
         }
@@ -89,7 +89,7 @@ public class fileHandling {
         GameEngine obj = new GameEngine();
         try (ObjectInputStream in =
                      new ObjectInputStream(
-                             new FileInputStream(csfFilesPath+"\\"+fileName))) {
+                             new FileInputStream(fileName))) {
             obj = (GameEngine)in.readObject();
         }
         catch (IOException e){

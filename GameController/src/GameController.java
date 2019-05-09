@@ -1,33 +1,31 @@
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableStringValue;
+import javafx.scene.control.Spinner;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 
 public class GameController implements Observer {
 
     enum RoundAction {NO_ACTION, DO_NOTHING, BOOST, CONQUER}
     private GameUX gameUX;
+    private ChooseArmyUX chooseArmy;
     private GameEngine gameEngine;
     private StringProperty currPlayerInfo;
     private StringProperty currTerritoryInfo;
+    private Integer currTerritoryId = 0;
+    private BooleanProperty inRound;
     private ArrayList<String> args;
     private RoundAction actionFlag = RoundAction.NO_ACTION;
     private ArrayList<Thread> threads;
-    private DoubleProperty loadProgress;
 
     public GameController(){
         gameUX = new GameUX();
@@ -35,8 +33,13 @@ public class GameController implements Observer {
         gameUX.setContoller(this);
         currPlayerInfo = new SimpleStringProperty("");
         currTerritoryInfo = new SimpleStringProperty("");
+        inRound = new SimpleBooleanProperty(false);
         gameUX.bindPlayerInfo(currPlayerInfo);
         gameUX.bindTeritoryInfo(currTerritoryInfo);
+        gameUX.bindInGameButtonsAccess(gameEngine.getValid().not().or(gameEngine.getGameSet()));
+        gameUX.bindLoadMenuButtonsAccess(gameEngine.getGameSet().and(gameEngine.getGameSet()));
+        gameUX.bindInRoundButton(gameEngine.getGameSet().not().or(inRound));
+        gameUX.bindRoundActionButtons(inRound.not().and(inRound.not()));
         args = new ArrayList<>();
         threads = new ArrayList<>();
     }
@@ -77,21 +80,22 @@ public class GameController implements Observer {
     }
 
     public void loadXML() throws Exception {
-        runCommand(()->gameEngine.loadFile(args.get(1)));
         FileLoaderUX loaderScene = new FileLoaderUX();
-        loaderScene.bindProgressBar(gameEngine.getLoadProg());
+        runCommand(()->{System.out.println(gameEngine.loadFile(args.get(1)));Platform.runLater(()->loaderScene.enableFinishLoader());});
+        loaderScene.bindProgressBar(gameEngine.getLoadProgress());
         loaderScene.launchLoader();
     }
 
     public void startNewGame(){
         System.out.println("Starting new game");
-        runCommand(()->gameEngine.setGame("Player1","Player2"));
+        runCommand(()->gameEngine.setGame());
         Platform.runLater(()->gameUX.setGameBoard(gameEngine.getBoard().getRows(),gameEngine.getBoard().getColumns()));
-        Platform.runLater(()->gameUX.setLoaders(gameEngine.isGameSet()));
+        //Platform.runLater(()->gameUX.setLoaders(gameEngine.isGameSet()));
     }
 
     public void territory(){
         Platform.runLater(()->currTerritoryInfo.setValue(gameEngine.showTeriritoryInfo(Integer.parseInt(args.get(1)))));
+        currTerritoryId = Integer.parseInt(args.get(1));
     }
 
     public void saveGame(){
@@ -101,7 +105,8 @@ public class GameController implements Observer {
     }
 
     public void startNewRound(){
-        Platform.runLater(()->gameUX.activateRoundAction());
+        //Platform.runLater(()->gameUX.activateRoundAction());
+        inRound.setValue(true);
         Platform.runLater(()->currPlayerInfo.setValue(gameEngine.getPlayers().get(gameEngine.getCurrTurn()).toString()));
     }
 
@@ -115,10 +120,21 @@ public class GameController implements Observer {
         nextPlayer();
     }
 
-    public void conquer(){
+    public void conquer() throws Exception{
         actionFlag = RoundAction.CONQUER;
-        nextPlayer();
-
+        Map<Integer, Boolean> availableTers = gameEngine.getAvailableTeritoryToConquer();
+        if (currTerritoryId != 0 && availableTers.keySet().contains(currTerritoryId)) {
+            inRound.setValue(false);
+            Map<String, Integer> units = new HashMap<>();
+            ArrayList<ArmyUnit> army = gameEngine.getArmy();
+            army.forEach(un -> units.put(un.getType(), un.getPurchase()));
+            chooseArmy = new ChooseArmyUX();
+            chooseArmy.setNotifier(this);
+            chooseArmy.setArmyUnitsSpinners(units);
+            chooseArmy.bindToTuringsLabel(new SimpleIntegerProperty(chooseArmy.getSpinners().getChildren().stream().
+                    mapToInt(k->((Spinner<Integer>)(((HBox)k).getChildren().get(1))).getValue()).sum()));
+            chooseArmy.launchLoader();
+        }
     }
 
     public void undo(){
@@ -139,7 +155,7 @@ public class GameController implements Observer {
 
     public void exit(){
         System.out.println("Exiting");
-        threads.forEach(thr->{if (thr.isAlive()) thr.stop();});
+        //threads.forEach(thr->{if (thr.isAlive()) thr.;});
     }
 
     private void runCommand(Runnable command){
@@ -173,15 +189,19 @@ public class GameController implements Observer {
         }
     }
 
+    private void getArmy(){
+        Map<String,Integer> army = chooseArmy.getArmy();
+        System.out.println(gameEngine.playerConquer(currTerritoryId,army));
+        inRound.setValue(true);
+        nextPlayer();
+    }
+
     private void nextPlayer() {
         if (!gameEngine.isGameOver()) {
             gameEngine.nextTurn();
             if (gameEngine.getCurrTurn() == 0) {
                 currPlayerInfo.setValue("");
-                Platform.runLater(() -> gameUX.disableRoundAction());
-                if (gameEngine.isGameOver()){
-                    Platform.runLater(()->gameUX.setLoaders(gameEngine.isGameOver()));
-                }
+                inRound.setValue(false);
             } else {
                 currPlayerInfo.setValue(gameEngine.getPlayers().get(gameEngine.getCurrTurn()).toString());
             }

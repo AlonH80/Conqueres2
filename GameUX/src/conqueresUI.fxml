@@ -22,11 +22,11 @@
          <bottom>
             <ButtonBar fx:id="gameAction" prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <buttons>
-                  <Button mnemonicParsing="false" onAction="#startNewGame" text="New game" textAlignment="CENTER" />
-                  <Button mnemonicParsing="false" onAction="#startNewRound" text="New round" />
-                  <Button mnemonicParsing="false" onAction="#undo" text="Undo" />
-                  <Button mnemonicParsing="false" onAction="#history" text="History" />
-                  <Button mnemonicParsing="false" onAction="#saveGame" text="Save game" />
+                  <Button fx:id="newGameBtn" mnemonicParsing="false" onAction="#startNewGame" text="New game" textAlignment="CENTER" />
+                  <Button fx:id="newRoundBtn" mnemonicParsing="false" onAction="#startNewRound" text="New round" />
+                  <Button fx:id="undoBtn" mnemonicParsing="false" onAction="#undo" text="Undo" />
+                  <Button fx:id="historyBtn" mnemonicParsing="false" onAction="#history" text="History" />
+                  <Button fx:id="saveGameBtn" mnemonicParsing="false" onAction="#saveGame" text="Save game" />
                </buttons>
                <effect>
                   <DropShadow />
@@ -47,8 +47,8 @@
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="0.0" prefWidth="200.0">
                      <children>
-                        <Button alignment="TOP_LEFT" layoutX="1.0" layoutY="1.0" mnemonicParsing="false" onAction="#loadXML" prefHeight="27.0" prefWidth="201.0" text="Load XML file" />
-                        <Button alignment="TOP_LEFT" layoutX="1.0" layoutY="28.0" mnemonicParsing="false" onAction="#loadSavedGame" prefHeight="27.0" prefWidth="202.0" text="Load saved game" />
+                        <Button fx:id="loadXmlBtn" alignment="TOP_LEFT" layoutX="1.0" layoutY="1.0" mnemonicParsing="false" onAction="#loadXML" prefHeight="27.0" prefWidth="201.0" text="Load XML file" />
+                        <Button fx:id="loadSavelBtn" alignment="TOP_LEFT" layoutX="1.0" layoutY="28.0" mnemonicParsing="false" onAction="#loadSavedGame" prefHeight="27.0" prefWidth="202.0" text="Load saved game" />
                         <Button alignment="TOP_LEFT" layoutY="54.0" mnemonicParsing="false" onAction="#exit" prefHeight="27.0" prefWidth="201.0" text="Exit" />
                      </children>
                   </AnchorPane>

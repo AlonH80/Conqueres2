@@ -4,8 +4,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.awt.Color;
 
 import generated.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 
 import javax.xml.bind.JAXBException;
 
@@ -16,6 +21,7 @@ public class GameEngine implements Cloneable, Serializable {
     private final Integer DEFAULT_TOTAL_CYCLES=20;
     private final Integer DEFAULT_ROWS=5;
     private final Integer DEFAULT_COLS=5;
+    public static Color[] colors = {Color.BLUE,Color.RED,Color.GREEN,Color.YELLOW};
 
     private ArrayList<Player> players;
     private Integer currRound;
@@ -28,8 +34,12 @@ public class GameEngine implements Cloneable, Serializable {
     protected Integer totalCycles;
     protected Integer defaultArmyThreshold;
     protected Integer defaultProfit;
-    protected Boolean valid;
-    protected Boolean gameSet;
+    protected transient BooleanProperty valid;
+    protected transient BooleanProperty gameSet;
+    protected Integer currTurn;
+    protected final Integer numOfChecks = 31;
+    protected Integer checks = 0;
+    protected transient DoubleProperty loadProg;
 
     public GameEngine(){
         players=new ArrayList<>(2);
@@ -38,8 +48,9 @@ public class GameEngine implements Cloneable, Serializable {
         board=new GameBoard();
         territories=new ArrayList<>();
         army=new ArrayList<>();
-        valid = false;
-        gameSet = false;
+        valid = new SimpleBooleanProperty(false);
+        gameSet = new SimpleBooleanProperty(false);
+        loadProg = new SimpleDoubleProperty(0);
     }
 
     public GameBoard getBoard() {
@@ -50,22 +61,25 @@ public class GameEngine implements Cloneable, Serializable {
         return players;
     }
 
-    public void setGame(String player1Name,String player2Name) {
-        new File("csf_files").mkdir();
-        players.clear();
-        Player.numOfPlayers = 0;
-        setPlayer(player1Name, 0);
-        setPlayer(player2Name, 1);
+    public void setGame() {
+        //new File("csf_files").mkdir();
+        //players.clear();
+        //Player.numOfPlayers = 0;
+        //setPlayer(player1Name, 0);
+        //setPlayer(player2Name, 1);
         setBoard();
         currRound = totalCycles;
-        valid = true;
-        gameSet = true;
+        currTurn = 0;
+        valid.setValue(true);
+        gameSet.setValue(true);
         history.add(showGameDetails());
     }
 
-    public Boolean isGameSet(){
+    public BooleanProperty getGameSet(){
         return gameSet;
     }
+
+    public Boolean isGameSet(){return gameSet.getValue();}
 
     public int getInitialFunds() {
         return initialFunds;
@@ -85,6 +99,10 @@ public class GameEngine implements Cloneable, Serializable {
 
     public Integer getCurrRound(){
         return currRound;
+    }
+
+    public ArrayList<ArmyUnit> getArmy(){
+        return army;
     }
 
     public ArrayList<Integer> getTerritoriesIds(){
@@ -108,10 +126,11 @@ public class GameEngine implements Cloneable, Serializable {
         return null;
     }
 
-    public String playerConquer(String playerName,Integer territoryId,Map<String,Integer> attackingForce){
-        Player conqueror=findPlayer(playerName);
+    public String playerConquer(/*String playerName,*/Integer territoryId,Map<String,Integer> attackingForce){
+        //Player conqueror = findPlayer(playerName);
+        Player conqueror = players.get(currTurn);
         TeritoryUnit teritory = board.findObject(territoryId);
-        ArrayList<ArmyUnit> attackingUnits=playerBuyUnits(playerName,attackingForce);
+        ArrayList<ArmyUnit> attackingUnits=playerBuyUnits(conqueror.getName(),attackingForce);
         String retVal="";
         if (teritory != null && teritory.isConquered()){
             Player prevConqueror = findPlayer(teritory.getConqueror());
@@ -197,8 +216,8 @@ public class GameEngine implements Cloneable, Serializable {
         return player.getTurings();
     }
 
-    public Map<Integer, Boolean> getAvailableTeritoryToConquer(String playerName){
-        Player player=findPlayer(playerName);
+    public Map<Integer, Boolean> getAvailableTeritoryToConquer(/*String playerName*/){
+        Player player = players.get(currTurn);
         Map<Integer, Boolean> availableGrounds=new HashMap<>();
         ArrayList<TeritoryUnit> conqueredUnits=player.getConqueredTeritories();
         Map<Integer, Boolean> neighbours;
@@ -225,7 +244,6 @@ public class GameEngine implements Cloneable, Serializable {
                 availableGrounds.put(board.getObject(i,0).getId(),board.getObject(i,0).isConquered());
                 availableGrounds.put(board.getObject(i,board.getColumns()-1).getId(),board.getObject(i,board.getColumns()-1).isConquered());
             }
-
         }
         return availableGrounds;
     }
@@ -252,7 +270,8 @@ public class GameEngine implements Cloneable, Serializable {
 
     public Boolean isGameOver(){
         if (currRound <= 0){
-            valid = false;
+            //valid.setValue(false);
+            gameSet.setValue(false);
             return true;
         }
         return false;
@@ -266,11 +285,11 @@ public class GameEngine implements Cloneable, Serializable {
         return history;
     }
 
-    public void setPlayer(String playerName,Integer ind){
+    /*public void setPlayer(String playerName,Integer ind){
         players.add(new Player(playerName));
         //players.get(ind).setName(playerName);
         players.get(ind).setTurings(initialFunds);
-    }
+    }*/
 
     public void setTerritoriesInBoard() {
         for (TeritoryUnit ter:territories){
@@ -351,54 +370,83 @@ public class GameEngine implements Cloneable, Serializable {
                     " XML error: "+e.getLinkedException().toString();
         }
         catch (Exception e){
+            e.printStackTrace();
             return "Invalid XML file entered.";
         }
     }
 
     public void checkValid(GameDescriptor gameDescriptor) throws InvalidXMLException{
+        checks = 0;
+        updateProgress(0);
         if (gameDescriptor.getGame().getBoard().getRows() == null ||
                 gameDescriptor.getGame().getBoard().getRows().intValue()<2){
             throw new InvalidXMLException("Too few rows (minimum 2).");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getBoard().getColumns() == null ||
                 gameDescriptor.getGame().getBoard().getColumns().intValue()<3){
             throw new InvalidXMLException("Too few columns (minimum 3).");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getBoard().getRows().intValue()>30){
             throw new InvalidXMLException("Too much rows (maximum 30).");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getBoard().getColumns().intValue()>30){
             throw new InvalidXMLException("Too much columns (maximum 30).");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getTotalCycles()==null){
             throw new InvalidXMLException("Total cycles wasn't set.");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getTotalCycles().intValue()<=0){
             throw new InvalidXMLException("Non-positive total cycles.");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getInitialFunds()==null){
             throw new InvalidXMLException("Initial funds weren't set.");
         }
+        updateProgress(1);
         if (gameDescriptor.getGame().getInitialFunds().intValue() <= 0){
             throw new InvalidXMLException("Non positive initial funds.");
         }
+        updateProgress(1);
         checkValidArmy(gameDescriptor);
+        updateProgress(7);
         checkValidTerritories(gameDescriptor);
+        updateProgress(5);
+        checkValidPlayers(gameDescriptor);
+        updateProgress(2);
         board.setRows(gameDescriptor.getGame().getBoard().getRows().intValue());
+        updateProgress(1);
         board.setColumns(gameDescriptor.getGame().getBoard().getColumns().intValue());
+        updateProgress(1);
         totalCycles=gameDescriptor.getGame().getTotalCycles().intValue();
+        updateProgress(1);
         initialFunds=gameDescriptor.getGame().getInitialFunds().intValue();
+        updateProgress(1);
         defaultArmyThreshold = gameDescriptor.getGame().getTerritories().getDefaultArmyThreshold().intValue();
+        updateProgress(1);
         defaultProfit = gameDescriptor.getGame().getTerritories().getDefaultProfit().intValue();
+        updateProgress(1);
         for(Unit un:gameDescriptor.getGame().getArmy().getUnit()){
             army.add(new ArmyUnit(un));
         }
+        updateProgress(1);
         TeritoryUnit.otherUnitIds.clear();
         for (Teritory ter:gameDescriptor.getGame().getTerritories().getTeritory()){
             territories.add(new TeritoryUnit(ter));
         }
-        valid = true;
-        gameSet = false;
+        updateProgress(1);
+        Integer col = 0;
+        for (generated.Player pla:gameDescriptor.getPlayers().getPlayer()){
+            players.add(new Player(pla.getId().intValue(),pla.getName(),colors[col++]));
+            players.get(players.size()-1).setTurings(initialFunds);
+        }
+        updateProgress(1);
+        valid.setValue(true);
+        gameSet.setValue(false);
     }
 
     public void checkValidArmy(GameDescriptor gameDescriptor) throws InvalidXMLException{
@@ -432,6 +480,22 @@ public class GameEngine implements Cloneable, Serializable {
                 throw new InvalidXMLException(un.getType() + " has non-positive max fire power.");
             }
         }
+
+        ArrayList<Integer> dupIds = ArmyUnit.findDuplicatesId(gameDescriptor.getGame().getArmy());
+        if (dupIds.size() > 0){
+            throw new InvalidXMLException("Duplicate army rank: "+dupIds.toString());
+        }
+
+        ArrayList<String> dupNames = ArmyUnit.findDuplicatesName(gameDescriptor.getGame().getArmy());
+        if (dupNames.size() > 0){
+            throw new InvalidXMLException("Duplicate army names: "+dupNames.toString());
+        }
+
+        Integer missingRank = ArmyUnit.verifyInOrder(gameDescriptor.getGame().getArmy());
+        if (missingRank != -1){
+            throw new InvalidXMLException("Missing rank: "+missingRank.toString());
+        }
+
     }
 
     public void checkValidTerritories(GameDescriptor gameDescriptor) throws InvalidXMLException{
@@ -475,14 +539,26 @@ public class GameEngine implements Cloneable, Serializable {
         }
 
         if (TeritoryUnit.findDuplicates(gameDescriptor.getGame().getTerritories()).size()>0){
-            valid=false;
+            valid.setValue(false);
             throw new InvalidXMLException("Duplicate teritory IDs: "+TeritoryUnit.findDuplicates(gameDescriptor.getGame().getTerritories()).toString());
         }
     }
 
-    public Boolean isValid(){
+    public void checkValidPlayers(GameDescriptor gameDescriptor) throws InvalidXMLException{
+        if (gameDescriptor.getPlayers().getPlayer().size()<2 || gameDescriptor.getPlayers().getPlayer().size()>4){
+            throw new InvalidXMLException("Invalid number of players ("+gameDescriptor.getPlayers().getPlayer().size()+"), should be between 2 and 4");
+        }
+        ArrayList<Integer> dups = Player.findDuplicates(gameDescriptor.getPlayers());
+        if (dups.size()>0){
+            throw new InvalidXMLException("Duplicate player IDs: "+dups.toString());
+        }
+    }
+
+    public BooleanProperty getValid(){
         return valid;
     }
+
+    public Boolean isValid(){return valid.getValue();}
 
     public static GameEngine getLastGameState(){
         if (gameState.size()>0) {
@@ -525,9 +601,32 @@ public class GameEngine implements Cloneable, Serializable {
         army.forEach(un->cloneGame.army.add((ArmyUnit) un.clone()));
         territories.forEach(ter->cloneGame.territories.add((TeritoryUnit)ter.clone()));
         cloneGame.totalCycles = getTotalCycles();
-        cloneGame.valid = isValid();
-        cloneGame.gameSet = isGameSet();
+        cloneGame.valid.setValue(isValid());
+        cloneGame.gameSet.setValue(isGameSet());
+        cloneGame.currTurn = this.currTurn;
         return cloneGame;
+    }
+
+    public Integer getCurrTurn(){return currTurn;}
+
+    public void nextTurn(){
+        if (!isGameOver()){
+            ++currTurn;
+            currTurn %= players.size();
+            if (currTurn==0) {
+                finishRound();
+                roundUp();
+            }
+        }
+    }
+
+    private void updateProgress(Integer checksMade){
+        checks += checksMade;
+        loadProg.setValue(((double)checks)/checksMade);
+    }
+
+    public DoubleProperty getLoadProgress(){
+        return loadProg;
     }
 }
 

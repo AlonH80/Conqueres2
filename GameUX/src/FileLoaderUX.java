@@ -4,33 +4,42 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class FileLoaderUX {
+public class FileLoaderUX implements Initializable {
 
     @FXML private ProgressBar progressBar;
 
-    @FXML private Label info;
+    @FXML private Button info;
 
-    @FXML private BorderPane mainPane;
+    @FXML private BorderPane mPane;
+    Scene scene;
+
+    Stage pStage;
 
     private FXMLLoader root;
 
     public FileLoaderUX() throws Exception {
         root = new FXMLLoader(getClass().getResource("loadFile.fxml"));
         root.setController(this);
-        mainPane = root.load();
+        mPane = root.load();
+        info.setOnAction(e->exitLoader());
     }
 
     public void setStage(Stage primaryStage) throws IOException {
             primaryStage.setTitle("Loader");
-            Scene scene = new Scene(mainPane,200,100);
+            scene = new Scene(mPane,600,300);
             primaryStage.setScene(scene);
     }
 
@@ -39,8 +48,26 @@ public class FileLoaderUX {
     }
 
     public void launchLoader() throws Exception {
-        Stage pStage = new Stage();
+        pStage = new Stage();
         setStage(pStage);
         pStage.show();
+    }
+
+    public void exitLoader() {
+        try {
+            Thread.sleep(1000);
+        }
+        catch (InterruptedException e){}
+        pStage.close();
+    }
+
+    public void enableFinishLoader(){
+        info.setDisable(false);
+        info.setText("OK");
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+
     }
 }
