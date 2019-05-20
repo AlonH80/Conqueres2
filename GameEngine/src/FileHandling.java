@@ -7,12 +7,12 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 
-public class fileHandling {
+public class FileHandling {
     public static String csfFilesPath = "csf_files";
     public String fileName;
 
 
-    public fileHandling(String fileName){
+    public FileHandling(String fileName){
         setFileName(fileName);
     }
 

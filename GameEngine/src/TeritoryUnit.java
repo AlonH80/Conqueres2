@@ -197,7 +197,7 @@ public class TeritoryUnit implements Cloneable, Serializable {
         ArmyUnit.roundUpArmy(armyOnGround);
     }
 
-    public String showDetails() {
+    public String showDetails(Boolean showUnits, ArrayList<ArmyUnit> armyTypes) {
         String returnString = "Teritory ID: " + id +
                 System.lineSeparator() + "Army threshold: " + armyThreshold +
                 System.lineSeparator() + "Profit: " + profit + System.lineSeparator() + "Conqueror: ";
@@ -208,25 +208,9 @@ public class TeritoryUnit implements Cloneable, Serializable {
         returnString += System.lineSeparator();
         if (!conquerAble)
             returnString += "Not conquerable" + System.lineSeparator();
+        if (showUnits)
+            returnString += ArmyUnit.showArmyByType(armyOnGround,armyTypes);
         return returnString;
-    }
-
-    public String showDetailsForConqueror(){
-        String retString = new String();
-        retString += "  Unit ID: "+id.toString()+System.lineSeparator();
-        retString += "  Army threshold :"+armyThreshold.toString()+System.lineSeparator();
-        retString += "  " + showArmyDetails();
-        retString += "  Turings to fully recover army on the ground: " + getMissingTuringsToRecoverArmy()+System.lineSeparator();
-        return retString;
-    }
-
-    public String showArmyDetails() {
-        return ArmyUnit.showArmyByType(armyOnGround);
-    }
-
-    @Override
-    public String toString() {
-        return showDetails();
     }
 
     public Integer getMissingTuringsToRecoverUnitType(String unitType){
@@ -235,10 +219,10 @@ public class TeritoryUnit implements Cloneable, Serializable {
 
     }
 
-    public Integer getMissingTuringsToRecoverArmy(){
+    public Integer getMissingTuringsToRecoverArmy(ArrayList<ArmyUnit> possibleTypes){
         int totalTuringsMiss = 0;
-        for (String unitType:ArmyUnit.possibleTypes){
-            totalTuringsMiss += getMissingTuringsToRecoverUnitType(unitType);
+        for (ArmyUnit unitType:possibleTypes){
+            totalTuringsMiss += getMissingTuringsToRecoverUnitType(unitType.getType());
         }
         return totalTuringsMiss;
     }

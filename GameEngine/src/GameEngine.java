@@ -25,7 +25,7 @@ public class GameEngine implements Cloneable, Serializable {
 
     private ArrayList<Player> players;
     private Integer currRound;
-    private ArrayList<String> history;
+    private ArrayList<String> boardHistory;
     private String leader;
     protected GameBoard board;
     protected int initialFunds;
@@ -44,7 +44,7 @@ public class GameEngine implements Cloneable, Serializable {
     public GameEngine(){
         players=new ArrayList<>(2);
         currRound = 0;
-        history = new ArrayList<>();
+        boardHistory = new ArrayList<>();
         board=new GameBoard();
         territories=new ArrayList<>();
         army=new ArrayList<>();
@@ -72,7 +72,7 @@ public class GameEngine implements Cloneable, Serializable {
         currTurn = 0;
         valid.setValue(true);
         gameSet.setValue(true);
-        history.add(showGameDetails());
+        boardHistory.add(board.toString());
     }
 
     public BooleanProperty getGameSet(){
@@ -111,10 +111,6 @@ public class GameEngine implements Cloneable, Serializable {
             terList.forEach(t->terIds.add(t.getId()));
         }
         return terIds;
-    }
-
-    public ArrayList<Integer> getPlayerTerritoriesIds(String playerName){
-        return findPlayer(playerName).getConqueredTeritoriesIds();
     }
 
     private Player findPlayer(String playerName){
@@ -157,7 +153,7 @@ public class GameEngine implements Cloneable, Serializable {
     public void finishRound(){
         --currRound;
         isGameOver();
-        history.add(showGameDetails());
+        boardHistory.add(board.toString());
         setLeader();
     }
 
@@ -166,9 +162,20 @@ public class GameEngine implements Cloneable, Serializable {
         return player.getConqueredTeritoriesIds();
     }
 
+    public ArrayList<Integer> getPlayerTeritoryIds(Integer ind){
+        return getPlayerTeritorysIds(players.get(ind).getName());
+    }
+
     public Integer powerUnitMissingCost(String playerName,Integer teritoryToReinforce,String unitType){
         Player player=findPlayer(playerName);
         return player.getPowerUnitMissingCost(unitType,teritoryToReinforce);
+    }
+
+    public Map<String,Integer> turingsToRecvoerByType(Integer teritoryToReinforce){
+        TeritoryUnit teritory = board.findObject(teritoryToReinforce);
+        Map<String,Integer> turingsToRecoverMap = new HashMap<>(army.size());
+        army.forEach(un->turingsToRecoverMap.put(un.getType(),teritory.getMissingTuringsToRecoverUnitType(un.getType())));
+        return turingsToRecoverMap;
     }
 
     public Double getSinglePowerCost(String unitType){
@@ -181,7 +188,7 @@ public class GameEngine implements Cloneable, Serializable {
 
     public void addPower(String playerName,Integer unitToReinforce,String unitType,Integer amountOfTurings){
         Player player=findPlayer(playerName);
-        player.addPowerWidthwise(unitType,amountOfTurings,unitToReinforce);
+        player.addPowerWidthwise(unitType,amountOfTurings,board.findObject(unitToReinforce));
     }
 
     public boolean isConquered(Integer terId){
@@ -192,27 +199,35 @@ public class GameEngine implements Cloneable, Serializable {
         return players.get(playerInd).getName();
     }
 
-    public String getPlayerInfo(String playerName){
+    /*public String getPlayerInfo(String playerName){
         Player currPlayer=findPlayer(playerName);
         return currPlayer.showDetails();
-    }
+    }*/
 
     public String getGroundInfo(Integer terId){
         TeritoryUnit ter=board.findObject(terId);
-        if (ter!=null)
-            return ter.showDetails();
+        if (ter!=null) {
+            Boolean showArmy = false;
+            if (players.get(currTurn).getConqueredTeritoriesIds().contains(terId)) showArmy = true;
+            return ter.showDetails(showArmy, army);
+        }
         return "";
     }
 
-    public String getArmyOnGroundInfo(Integer terId){
+    /*public String getArmyOnGroundInfo(Integer terId){
         TeritoryUnit ter=board.findObject(terId);
         if (ter!=null)
             return ter.showArmyDetails();
         return "";
-    }
+    }*/
 
     public Integer getPlayerAmountOfTurings(String playerName){
         Player player=findPlayer(playerName);
+        return player.getTurings();
+    }
+
+    public Integer getPlayerAmountOfTurings(Integer ind){
+        Player player = players.get(ind);
         return player.getTurings();
     }
 
@@ -258,7 +273,7 @@ public class GameEngine implements Cloneable, Serializable {
     }
 
     public ArrayList<ArmyUnit> playerBuyUnits(String playerName,Map <String,Integer> unitsToBuy){
-        Player player=findPlayer(playerName);
+        Player player = findPlayer(playerName);
         ArrayList<ArmyUnit> cart=new ArrayList<>();
         for (String key:unitsToBuy.keySet()){
             for (int i=0;i<unitsToBuy.get(key);++i){
@@ -281,8 +296,8 @@ public class GameEngine implements Cloneable, Serializable {
         return board.toString();
     }
 
-    public ArrayList<String> getHistory(){
-        return history;
+    public ArrayList<String> getBoardHistory(){
+        return boardHistory;
     }
 
     /*public void setPlayer(String playerName,Integer ind){
@@ -340,14 +355,14 @@ public class GameEngine implements Cloneable, Serializable {
         return leader;
     }
 
-    public String showGameDetails(){
+    /*public String showGameDetails(){
         StringBuilder retString = new StringBuilder(new String());
         retString.append(showWorldsMap());
         retString.append("Number of rounds played: "+(totalCycles-currRound)+" / "+totalCycles+System.lineSeparator());
         players.forEach(pla->retString.append(pla.showDetailsGameDescriptor()+System.lineSeparator()));
         return retString.toString();
 
-    }
+    }*/
 
     public String loadFile(String fileName){
         GameDescriptor gameDescriptor;
@@ -355,7 +370,7 @@ public class GameEngine implements Cloneable, Serializable {
             return "Not an xml file";
         }
         try {
-            gameDescriptor = fileHandling.fileToGame(fileName);
+            gameDescriptor = FileHandling.fileToGame(fileName);
             checkValid(gameDescriptor);
             return "File loaded successfully.";
         }
@@ -567,13 +582,13 @@ public class GameEngine implements Cloneable, Serializable {
         return null;
     }
 
-    public String showPlayerInfo(Integer playerInd){
+    /*public String showPlayerInfo(Integer playerInd){
         return players.get(playerInd).showDetails();
-    }
+    }*/
 
-    public String showPlayerInfoAfterAction(Integer playerInd){
+    /*public String showPlayerInfoAfterAction(Integer playerInd){
         return players.get(playerInd).showDetailsAfterAction();
-    }
+    }*/
 
     public Integer getArmyThreshold(Integer groundId){
         return board.findObject(groundId).getArmyThreshold();
@@ -583,9 +598,9 @@ public class GameEngine implements Cloneable, Serializable {
         board.findObject(unitId).addArmy(playerBuyUnits(playerName,unitsToBuy));
     }
 
-    public String showTeriritoryInfo(Integer terId){
+    /*public String showTeriritoryInfo(Integer terId){
         return board.findObject(terId).showDetails();
-    }
+    }*/
 
     @Override
     public Object clone(){
@@ -595,7 +610,7 @@ public class GameEngine implements Cloneable, Serializable {
         players.forEach(pla->
                 pla.getConqueredTeritories().forEach(ter->cloneGame.findPlayer(pla.getName()).addConqueredUnit(cloneGame.board.findObject(ter.getId()))));
         cloneGame.currRound = getCurrRound();
-        history.forEach(bh->cloneGame.history.add(bh));
+        boardHistory.forEach(bh->cloneGame.boardHistory.add(bh));
         cloneGame.leader = getLeader();
         cloneGame.initialFunds = getInitialFunds();
         army.forEach(un->cloneGame.army.add((ArmyUnit) un.clone()));

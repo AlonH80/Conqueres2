@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<Pane fx:id="mPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="621.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label fx:id="totalCost" layoutX="357.0" layoutY="364.0" prefHeight="17.0" prefWidth="123.0" text="Total turings: " />
+      <Button fx:id="confirmButton" layoutX="527.0" layoutY="359.0" mnemonicParsing="false" onAction="#confirmInput" text="Confirm" />
+      <SplitPane dividerPositions="0.5" prefHeight="357.0" prefWidth="621.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <VBox fx:id="recoverVBox" prefHeight="355.0" prefWidth="305.0">
+                     <children>
+                        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="31.0" prefWidth="303.0" text="Recover" textAlignment="CENTER" />
+                     </children></VBox>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <VBox fx:id="newUnitsVBox" prefHeight="357.0" prefWidth="306.0">
+                     <children>
+                        <Label alignment="CENTER" prefHeight="32.0" prefWidth="306.0" text="Buy new units" />
+                     </children></VBox>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </children>
+</Pane>

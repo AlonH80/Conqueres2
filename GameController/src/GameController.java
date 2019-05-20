@@ -18,6 +18,7 @@ public class GameController implements Observer {
     enum RoundAction {NO_ACTION, DO_NOTHING, BOOST, CONQUER}
     private GameUX gameUX;
     private ChooseArmyUX chooseArmy;
+    private BoostArmyUX boostArmy;
     private GameEngine gameEngine;
     private StringProperty currPlayerInfo;
     private StringProperty currTerritoryInfo;
@@ -76,7 +77,7 @@ public class GameController implements Observer {
 
     public void loadSavedGame(){
         System.out.println("Loading "+args.get(1));
-        runCommand(()->{gameEngine = fileHandling.fileToObj(args.get(1));});
+        runCommand(()->{gameEngine = FileHandling.fileToObj(args.get(1));});
     }
 
     public void loadXML() throws Exception {
@@ -94,14 +95,18 @@ public class GameController implements Observer {
     }
 
     public void territory(){
-        Platform.runLater(()->currTerritoryInfo.setValue(gameEngine.showTeriritoryInfo(Integer.parseInt(args.get(1)))));
+        Platform.runLater(()->currTerritoryInfo.setValue(gameEngine.getGroundInfo(Integer.parseInt(args.get(1)))));
         currTerritoryId = Integer.parseInt(args.get(1));
+    }
+
+    private void reShowTerritory(){
+        Platform.runLater(()->currTerritoryInfo.setValue(gameEngine.getGroundInfo(currTerritoryId)));
     }
 
     public void saveGame(){
         String saveDir = args.get(1);
         System.out.println("Saving in "+saveDir);
-        runCommand(()->fileHandling.objToFile(gameEngine,saveDir));
+        runCommand(()->FileHandling.objToFile(gameEngine,saveDir));
     }
 
     public void startNewRound(){
@@ -115,8 +120,22 @@ public class GameController implements Observer {
         nextPlayer();
     }
 
-    public void boost(){
+    public void boost() throws Exception {
         actionFlag = RoundAction.BOOST;
+        ArrayList<Integer> playerTers = gameEngine.getPlayerTeritoryIds(gameEngine.getCurrTurn());
+        if (currTerritoryId != 0 && playerTers.contains(currTerritoryId)) {
+            inRound.setValue(false);
+            Map<String, Integer> unitsRec = gameEngine.turingsToRecvoerByType(currTerritoryId);
+            Map<String, Integer> unitsNew = new HashMap<>();
+            gameEngine.getArmy().forEach(un->unitsNew.put(un.getType(),gameEngine.getPlayerAmountOfTurings(gameEngine.getCurrTurn())/un.getPurchase()));
+            boostArmy = new BoostArmyUX();
+            boostArmy.setNotifier(this);
+            boostArmy.setRecoverSpinners(unitsRec);
+            boostArmy.setNewUnitsSpinners(unitsNew);
+            /*boostArmy.bindToTuringsLabel(new SimpleIntegerProperty(boostArmy.getSpinners().getChildren().stream().
+                    mapToInt(k->((Spinner<Integer>)(((HBox)k).getChildren().get(1))).getValue()).sum()));*/
+            boostArmy.launchLoader();
+        }
         nextPlayer();
     }
 
@@ -196,7 +215,17 @@ public class GameController implements Observer {
         nextPlayer();
     }
 
+    private void getBoostArmy(){
+        Map<String,Integer> armyNew= boostArmy.getArmyNew();
+        Map<String,Integer> armyBoost= boostArmy.getArmyBoost();
+        armyBoost.keySet().forEach(un->gameEngine.addPower(gameEngine.getPlayerName(gameEngine.getCurrTurn()),currTerritoryId,un,armyBoost.get(un)));
+        gameEngine.addNewUnits(gameEngine.getPlayerName(gameEngine.getCurrTurn()), currTerritoryId, armyNew);
+        inRound.setValue(true);
+        nextPlayer();
+    }
+
     private void nextPlayer() {
+        reShowTerritory();
         if (!gameEngine.isGameOver()) {
             gameEngine.nextTurn();
             if (gameEngine.getCurrTurn() == 0) {

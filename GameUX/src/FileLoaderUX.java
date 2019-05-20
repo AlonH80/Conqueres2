@@ -54,10 +54,6 @@ public class FileLoaderUX implements Initializable {
     }
 
     public void exitLoader() {
-        try {
-            Thread.sleep(1000);
-        }
-        catch (InterruptedException e){}
         pStage.close();
     }
 

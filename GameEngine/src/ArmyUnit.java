@@ -16,7 +16,7 @@ public class ArmyUnit implements Cloneable, Serializable {
     protected Double singlePowerCost;
     protected Integer power;
     protected Integer unitId;
-    public static String[] possibleTypes={"Soldier"};
+    //public static String[] possibleTypes={"Soldier"};
 
     protected int purchase;
     protected int maxFirePower;
@@ -31,11 +31,10 @@ public class ArmyUnit implements Cloneable, Serializable {
         competenceReduction=DEFAULT_REDUCTION;
         power=DEFAULT_MAX_POWER;
         purchase=DEFAULT_PURCHASE;
-        type=possibleTypes[0];
         rank=1;
     }
 
-    public ArmyUnit(String type,Integer rank){
+    /*public ArmyUnit(String type,Integer rank){
         unitId=generateId();
         setType(type);
         setRank(rank);
@@ -44,7 +43,7 @@ public class ArmyUnit implements Cloneable, Serializable {
         competenceReduction=DEFAULT_REDUCTION;
         power=DEFAULT_MAX_POWER;
         purchase=DEFAULT_PURCHASE;
-    }
+    }*/
 
     public ArmyUnit(ArmyUnit otherUnit){
         this.purchase=otherUnit.purchase;
@@ -128,18 +127,7 @@ public class ArmyUnit implements Cloneable, Serializable {
     }
 
     public void setType(String value) {
-        if (isValidType(value))
-            this.type = value;
-        else
-            this.type=possibleTypes[0];
-    }
-
-    public boolean isValidType(String val){
-        for (String value:possibleTypes){
-            if (val==value)
-                return true;
-        }
-        return false;
+        this.type = value;
     }
 
     public Integer getRank() {
@@ -167,10 +155,10 @@ public class ArmyUnit implements Cloneable, Serializable {
         power=Math.min(power,maxFirePower);
     }
 
-    @Override
+    /*@Override
     public String toString(){
         return ("Unit ID: "+unitId+", Type: "+type+", Rank: "+rank+", Power: "+power+" (from "+maxFirePower+")");
-    }
+    }*/
 
     @Override
     public Object clone(){
@@ -236,12 +224,12 @@ public class ArmyUnit implements Cloneable, Serializable {
         return null;
     }
 
-    public static String showArmyByType(ArrayList<ArmyUnit> army){
+    public static String showArmyByType(ArrayList<ArmyUnit> army, ArrayList<ArmyUnit> possibleTypes){
         String retString = new String();
-        for (String type:possibleTypes) {
-            retString += "  " + type+" - ";
-            retString += "Amount of units: " + army.stream().filter(un -> un.getType().compareTo("Soldier") == 0).count();
-            retString += ", Total power: " + army.stream().filter(un -> un.getType().compareTo("Soldier") == 0).mapToInt(un -> un.getPower()).sum();
+        for (ArmyUnit type:possibleTypes) {
+            retString += "  " + type.getType() +" - ";
+            retString += "Amount of units: " + army.stream().filter(un -> un.getType().compareTo(type.getType()) == 0).count();
+            retString += ", Total power: " + army.stream().filter(un -> un.getType().compareTo(type.getType()) == 0).mapToInt(un -> un.getPower()).sum();
             retString += System.lineSeparator();
         }
         return retString;

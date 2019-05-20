@@ -84,7 +84,6 @@ public class ChooseArmyUX implements Initializable {
             hBox.getChildren().add(this.units.get(k));
             spinners.getChildren().add(hBox);
         });
-        spinners.getChildren().sorted();
     }
 
     public void launchLoader() throws Exception {

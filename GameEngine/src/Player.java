@@ -25,7 +25,6 @@ public class Player implements Cloneable, Serializable {
         setColor(color);
     }
 
-
     public void setId(Integer id){
         this.id = id;
     }
@@ -192,9 +191,8 @@ public class Player implements Cloneable, Serializable {
         return totalMissing;
     }
 
-    public void addPowerWidthwise(String unitType,Integer amountOfTurings,Integer teritoryToReinforceId){
+    public void addPowerWidthwise(String unitType,Integer amountOfTurings,TeritoryUnit ter){
         Boolean noChange=false;
-        TeritoryUnit ter=findTeritory(teritoryToReinforceId);
         Integer reduceAmount;
         while (!noChange) {
             noChange=true;
@@ -211,10 +209,12 @@ public class Player implements Cloneable, Serializable {
     }
 
     public static Integer calculateUnitsPower(ArrayList<ArmyUnit> units){
-        Integer totPower=0;
+        /*Integer totPower=0;
         for (ArmyUnit unit:units){
             totPower+=unit.getPower();
         }
+        return totPower;*/
+        Integer totPower = units.stream().mapToInt(ArmyUnit::getPower).sum();
         return totPower;
     }
 
@@ -229,7 +229,7 @@ public class Player implements Cloneable, Serializable {
         return retString.toString();
     }
 
-    public String showDetails(){
+    /*public String showDetails(){
         StringBuilder returnString = new StringBuilder(new String());
         returnString.append("### "+name+" ###"+System.lineSeparator());
         returnString.append("Turings before this round: ").append(GameEngine.getLastGameState().getPlayerAmountOfTurings(name).toString()).append(System.lineSeparator());
@@ -244,9 +244,9 @@ public class Player implements Cloneable, Serializable {
             returnString.append("Not ruling any territory."+System.lineSeparator());
         }
         return returnString.toString();
-    }
+    }*/
 
-    public String showDetailsAfterAction(){
+    /*public String showDetailsAfterAction(){
         StringBuilder returnString = new StringBuilder(new String());
         returnString.append("### "+name+" ###"+System.lineSeparator());
         returnString.append("Turings: ").append(getTurings().toString()).append(System.lineSeparator());
@@ -260,15 +260,16 @@ public class Player implements Cloneable, Serializable {
             returnString.append("Not ruling any territory."+System.lineSeparator());
         }
         return returnString.toString();
-    }
+    }*/
 
-    public String showDetailsGameDescriptor(){
+    // For debugging
+    /*public String showDetailsGameDescriptor(){
         StringBuilder retString = new StringBuilder(new String());
         retString.append("### "+name+" ###"+System.lineSeparator());
         retString.append("Number of conquered territories: "+conqueredTeritories.size());
         retString.append(System.lineSeparator()+"Amount of turings: "+turings);
         return retString.toString();
-    }
+    }*/
 
     private TeritoryUnit findTeritory(Integer terId) {
         return TeritoryUnit.findTeritory(conqueredTeritories,terId);
