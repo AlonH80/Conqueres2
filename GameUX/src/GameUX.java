@@ -1,7 +1,10 @@
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -9,6 +12,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.fxml.FXML;
@@ -34,6 +38,7 @@ public class GameUX extends Observable {
     @FXML private Button loadXmlBtn;
     @FXML private Button loadSavelBtn;
     @FXML private Button undoBtn;
+    @FXML private Label roundsLeft;
 
     private FXMLLoader root;
     private Parent mainPane;
@@ -140,6 +145,10 @@ public class GameUX extends Observable {
         roundAction.getButtons().forEach(b->b.disableProperty().bind(bool));
     }
 
+    public void bindRoundsLeftLabel(IntegerBinding intBinding) {
+        roundsLeft.textProperty().bind(new SimpleStringProperty("Rounds left: ").concat(intBinding));
+    }
+
     public void setContoller(Observer observer){
         addObserver(observer);
     }
@@ -164,6 +173,23 @@ public class GameUX extends Observable {
                 gameBoard.add(cell, i, j);
             }
         }
+    }
+
+    public void setTeritoryColor(Integer terId, Color col){
+        Button terButton = (Button)gameBoard.getChildren().get(terId-1);
+        ArrayList<StringBuilder> rgbHexStr = new ArrayList<>(3);
+
+        rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getRed()*255),16)));
+        rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getGreen()*255),16)));
+        rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getBlue()*255),16)));
+
+        for (StringBuilder c:rgbHexStr){
+            if(c.length() == 1){
+                c.insert(0,"0");
+            }
+        }
+
+        terButton.setStyle("-fx-background-color: #"+rgbHexStr.get(0).toString()+rgbHexStr.get(1).toString()+rgbHexStr.get(2).toString());
     }
 
     public void setLoaders(Boolean cond){

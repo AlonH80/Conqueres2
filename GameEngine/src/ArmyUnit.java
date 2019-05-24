@@ -2,7 +2,9 @@ import generated.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import generated.*;
 
@@ -273,5 +275,30 @@ public class ArmyUnit implements Cloneable, Serializable {
             }
         }
         return -1;
+    }
+
+    public static Map<String,ArrayList<ArmyUnit>> getArmyByType(ArrayList<ArmyUnit> army){
+        Map<String, ArrayList<ArmyUnit>> armyMap = new HashMap<>();
+        army.forEach(un->{
+            if (!armyMap.keySet().contains(un.getType())){
+                armyMap.put(un.getType(), new ArrayList<>());
+            }
+            armyMap.get(un.getType()).add(un);
+        });
+
+        return armyMap;
+    }
+
+    public static String findStrongestUnitType(ArrayList<ArmyUnit> army){
+        Integer maxRank = 0;
+        String unitName = new String();
+        for (ArmyUnit unit:army){
+            if (unit.getRank() > maxRank){
+                maxRank = unit.getRank();
+                unitName = unit.getType();
+            }
+        }
+
+        return unitName;
     }
 }

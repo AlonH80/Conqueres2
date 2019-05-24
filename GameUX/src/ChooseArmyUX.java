@@ -1,21 +1,18 @@
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,22 +20,20 @@ import java.util.*;
 
 public class ChooseArmyUX implements Initializable {
 
-    @FXML
-    private Pane mainPane;
-
-    @FXML
-    private Label turingsLabel;
-
-    @FXML
-    private VBox spinners;
-
-    @FXML
-    private Button confirmButton;
+    @FXML private Pane mainPane;
+    @FXML private Label turingsLabel;
+    @FXML private VBox spinners;
+    @FXML private VBox spinnersLabels;
+    @FXML private Button confirmButton;
+    @FXML private RadioButton deterministAttack;
+    @FXML private RadioButton lotteryAttack;
+    @FXML private VBox chooseAttackBox;
 
     private FXMLLoader root;
     private Map<Label,Spinner<Integer>> units;
     private Map<String,Integer> army = null;
     ChooseArmyNotifier notifier;
+    Integer totalTurings;
     Stage pStage;
     Scene scene;
 
@@ -46,6 +41,7 @@ public class ChooseArmyUX implements Initializable {
         root = new FXMLLoader(getClass().getResource("chooseArmy.fxml"));
         root.setController(this);
         mainPane = root.load();
+        totalTurings = 0;
     }
 
     public void setNotifier(Observer observer){
@@ -57,16 +53,29 @@ public class ChooseArmyUX implements Initializable {
         army = new HashMap<>();
         units.keySet().forEach(k->army.put(k.getText(),units.get(k).getValue()));
         pStage.close();
-        notifier.notifyController("getArmy");
+        if (deterministAttack.selectedProperty().getValue() == true){
+            notifier.notifyController("getArmy determinist");
+        }
+        else {
+            notifier.notifyController("getArmy lottery");
+        }
     }
 
-    public void bindToTuringsLabel(IntegerProperty turings){
-        turingsLabel.textProperty().bind((new SimpleStringProperty("Turings: ")).concat(turings.toString()));
+    public void bindToTuringsLabel(IntegerBinding turings){
+        turingsLabel.textProperty().bind((new SimpleStringProperty("Turings: ")).concat(turings));
     }
 
     public void setStage(Stage primaryStage) throws IOException {
         primaryStage.setTitle("Loader");
         scene = new Scene(mainPane,700,400);
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                notifier.notifyController("noActionOnChooseWindow");
+                pStage.close();
+                event.consume();
+            }
+        });
         primaryStage.setScene(scene);
     }
 
@@ -76,13 +85,14 @@ public class ChooseArmyUX implements Initializable {
             Label label = new Label();
             label.textProperty().setValue(k);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
+
+            spinner.valueProperty().addListener((obs, oldValue, newValue) ->
+                    updateTuringsLabel(oldValue, newValue, units.get(k)));
             this.units.put(label,spinner);
         });
         this.units.keySet().forEach(k->{
-            HBox hBox = new HBox();
-            hBox.getChildren().add(k);
-            hBox.getChildren().add(this.units.get(k));
-            spinners.getChildren().add(hBox);
+            spinners.getChildren().add(this.units.get(k));
+            spinnersLabels.getChildren().add(k);
         });
     }
 
@@ -121,4 +131,20 @@ public class ChooseArmyUX implements Initializable {
         }
 
     }
+
+    private void updateTuringsLabel(Integer oldValue, Integer newValue, Integer purch){
+        totalTurings += (newValue - oldValue)*purch;
+        turingsLabel.textProperty().setValue("Total turings: "+totalTurings.toString());
+    }
+
+    public void disableChooseAttackBox(){
+        chooseAttackBox.disableProperty().setValue(true);
+        chooseAttackBox.setOpacity(0);
+    }
+
+    public void enableChooseAttackBox(){
+        chooseAttackBox.disableProperty().setValue(false);
+        chooseAttackBox.setOpacity(1);
+    }
+
 }

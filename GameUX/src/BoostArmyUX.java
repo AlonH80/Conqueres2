@@ -5,6 +5,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -16,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.net.URL;
@@ -25,8 +27,10 @@ public class BoostArmyUX implements Initializable {
 
     @FXML private Pane mPane;
     @FXML private Label turingsLabel;
-    @FXML private VBox recoverVBox;
-    @FXML private VBox newUnitsVBox;
+    @FXML private VBox recoverLabelsVBox;
+    @FXML private VBox recoverSpinners;
+    @FXML private VBox newUnitsLabelsVBox;
+    @FXML private VBox newUnitsSpinners;
     @FXML private Button confirmButton;
 
     private FXMLLoader root;
@@ -34,6 +38,7 @@ public class BoostArmyUX implements Initializable {
     private Map<Label,Spinner<Integer>> unitsNew;
     private Map<String,Integer> armyBoost = null;
     private Map<String,Integer> armyNew = null;
+    private Integer totalTurings = 0;
     private BoostArmyNotifier notifier;
     private Stage pStage;
     private Scene scene;
@@ -65,6 +70,14 @@ public class BoostArmyUX implements Initializable {
     public void setStage(Stage primaryStage) throws IOException {
         primaryStage.setTitle("Boost army on territory");
         scene = new Scene(mPane,700,400);
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                notifier.notifyController("noActionOnChooseWindow");
+                pStage.close();
+                event.consume();
+            }
+        });
         primaryStage.setScene(scene);
     }
 
@@ -74,13 +87,13 @@ public class BoostArmyUX implements Initializable {
             Label label = new Label();
             label.textProperty().setValue(k);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
+            spinner.valueProperty().addListener((obs, oldValue, newValue) ->
+                    updateTuringsLabel(oldValue, newValue, 1));
             this.unitsBoost.put(label,spinner);
         });
         this.unitsBoost.keySet().forEach(k->{
-            HBox hBox = new HBox();
-            hBox.getChildren().add(k);
-            hBox.getChildren().add(this.unitsBoost.get(k));
-            recoverVBox.getChildren().add(hBox);
+            recoverLabelsVBox.getChildren().add(k);
+            recoverSpinners.getChildren().add(this.unitsBoost.get(k));
         });
     }
 
@@ -90,13 +103,13 @@ public class BoostArmyUX implements Initializable {
             Label label = new Label();
             label.textProperty().setValue(k);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
+            spinner.valueProperty().addListener((obs, oldValue, newValue) ->
+                    updateTuringsLabel(oldValue, newValue, units.get(k)));
             this.unitsNew.put(label,spinner);
         });
         this.unitsNew.keySet().forEach(k->{
-            HBox hBox = new HBox();
-            hBox.getChildren().add(k);
-            hBox.getChildren().add(this.unitsNew.get(k));
-            newUnitsVBox.getChildren().add(hBox);
+            newUnitsLabelsVBox.getChildren().add(k);
+            newUnitsSpinners.getChildren().add(this.unitsNew.get(k));
         });
     }
 
@@ -113,7 +126,7 @@ public class BoostArmyUX implements Initializable {
     public Map<String,Integer> getArmyBoost(){
         return armyBoost;
     }
-
+/*
     public VBox getRecoverVBox(){
         return recoverVBox;
     }
@@ -121,7 +134,7 @@ public class BoostArmyUX implements Initializable {
     public VBox getNewUnitsVBoxVBox(){
         return newUnitsVBox;
     }
-
+*/
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -142,5 +155,10 @@ public class BoostArmyUX implements Initializable {
             notifyObservers(mess);
         }
 
+    }
+
+    private void updateTuringsLabel(Integer oldValue, Integer newValue, Integer purch){
+        totalTurings += (newValue - oldValue)*purch;
+        turingsLabel.textProperty().setValue("Total turings: "+totalTurings.toString());
     }
 }

@@ -101,9 +101,6 @@ public class TeritoryUnit implements Cloneable, Serializable {
     }
 
     public void setConqueror(Player conq) {
-        /*if (conqueror != null) {
-            conqueror.removeConqueredUnit(this);
-        }*/
         if (conq != null) {
             conq.addConqueredUnit(this);
             conqueror = conq.getName();
@@ -134,7 +131,8 @@ public class TeritoryUnit implements Cloneable, Serializable {
     }
 
     public void setArmyOnGround(ArrayList<ArmyUnit> armyOnGround) {
-        this.armyOnGround = armyOnGround;
+        this.armyOnGround.clear();
+        armyOnGround.forEach(un->this.armyOnGround.add((ArmyUnit)un.clone()));
     }
 
     public void clearArmy() {

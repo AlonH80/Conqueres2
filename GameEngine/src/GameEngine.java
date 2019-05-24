@@ -4,13 +4,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.awt.Color;
+
 
 import generated.*;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.paint.Color;
 
 import javax.xml.bind.JAXBException;
 
@@ -43,7 +44,7 @@ public class GameEngine implements Cloneable, Serializable {
 
     public GameEngine(){
         players=new ArrayList<>(2);
-        currRound = 0;
+        currRound = -1;
         boardHistory = new ArrayList<>();
         board=new GameBoard();
         territories=new ArrayList<>();
@@ -69,7 +70,6 @@ public class GameEngine implements Cloneable, Serializable {
         //setPlayer(player2Name, 1);
         setBoard();
         currRound = totalCycles;
-        currTurn = 0;
         valid.setValue(true);
         gameSet.setValue(true);
         boardHistory.add(board.toString());
@@ -122,31 +122,29 @@ public class GameEngine implements Cloneable, Serializable {
         return null;
     }
 
-    public String playerConquer(/*String playerName,*/Integer territoryId,Map<String,Integer> attackingForce){
-        //Player conqueror = findPlayer(playerName);
+    public String playerConquer(Integer territoryId,Map<String,Integer> attackingForce, Player.AttackingMethod attackingMethod){
         Player conqueror = players.get(currTurn);
         TeritoryUnit teritory = board.findObject(territoryId);
         ArrayList<ArmyUnit> attackingUnits=playerBuyUnits(conqueror.getName(),attackingForce);
         String retVal="";
         if (teritory != null && teritory.isConquered()){
             Player prevConqueror = findPlayer(teritory.getConqueror());
-            retVal=conqueror.attackTeritory(teritory,attackingUnits);
-            if (teritory.getConqueror()==null ||teritory.getConqueror().compareTo(prevConqueror.getName()) != 0){
+            retVal=conqueror.attackTeritory(teritory,attackingUnits, attackingMethod);
+            if (teritory.getConqueror()==null || teritory.getConqueror().compareTo(prevConqueror.getName()) != 0){
                 prevConqueror.removeConqueredUnit(teritory);
                 if (teritory.getConqueror() == null){
                     prevConqueror.refundUnits(teritory.getArmyOnGround());
+                    teritory.clearArmy();
                 }
-                teritory.clearArmy();
             }
         }
-        else {  // Teritory available
+        else {
             retVal=conqueror.takeOverTeritory(teritory,attackingUnits);
         }
         return retVal;
     }
 
     public void roundUp(){
-        gameState.add((GameEngine)this.clone());
         players.forEach(Player::roundUp);
     }
 
@@ -199,27 +197,15 @@ public class GameEngine implements Cloneable, Serializable {
         return players.get(playerInd).getName();
     }
 
-    /*public String getPlayerInfo(String playerName){
-        Player currPlayer=findPlayer(playerName);
-        return currPlayer.showDetails();
-    }*/
-
     public String getGroundInfo(Integer terId){
         TeritoryUnit ter=board.findObject(terId);
         if (ter!=null) {
             Boolean showArmy = false;
-            if (players.get(currTurn).getConqueredTeritoriesIds().contains(terId)) showArmy = true;
+            if (currTurn < players.size() && players.get(currTurn).getConqueredTeritoriesIds().contains(terId)) showArmy = true;
             return ter.showDetails(showArmy, army);
         }
         return "";
     }
-
-    /*public String getArmyOnGroundInfo(Integer terId){
-        TeritoryUnit ter=board.findObject(terId);
-        if (ter!=null)
-            return ter.showArmyDetails();
-        return "";
-    }*/
 
     public Integer getPlayerAmountOfTurings(String playerName){
         Player player=findPlayer(playerName);
@@ -299,12 +285,6 @@ public class GameEngine implements Cloneable, Serializable {
     public ArrayList<String> getBoardHistory(){
         return boardHistory;
     }
-
-    /*public void setPlayer(String playerName,Integer ind){
-        players.add(new Player(playerName));
-        //players.get(ind).setName(playerName);
-        players.get(ind).setTurings(initialFunds);
-    }*/
 
     public void setTerritoriesInBoard() {
         for (TeritoryUnit ter:territories){
@@ -460,6 +440,7 @@ public class GameEngine implements Cloneable, Serializable {
             players.get(players.size()-1).setTurings(initialFunds);
         }
         updateProgress(1);
+        currTurn = players.size();
         valid.setValue(true);
         gameSet.setValue(false);
     }
@@ -582,14 +563,6 @@ public class GameEngine implements Cloneable, Serializable {
         return null;
     }
 
-    /*public String showPlayerInfo(Integer playerInd){
-        return players.get(playerInd).showDetails();
-    }*/
-
-    /*public String showPlayerInfoAfterAction(Integer playerInd){
-        return players.get(playerInd).showDetailsAfterAction();
-    }*/
-
     public Integer getArmyThreshold(Integer groundId){
         return board.findObject(groundId).getArmyThreshold();
     }
@@ -597,10 +570,6 @@ public class GameEngine implements Cloneable, Serializable {
     public void addNewUnits(String playerName,Integer unitId,Map<String,Integer> unitsToBuy){
         board.findObject(unitId).addArmy(playerBuyUnits(playerName,unitsToBuy));
     }
-
-    /*public String showTeriritoryInfo(Integer terId){
-        return board.findObject(terId).showDetails();
-    }*/
 
     @Override
     public Object clone(){
@@ -627,10 +596,15 @@ public class GameEngine implements Cloneable, Serializable {
     public void nextTurn(){
         if (!isGameOver()){
             ++currTurn;
-            currTurn %= players.size();
-            if (currTurn==0) {
+            currTurn %= (players.size()+1);
+            if (currTurn==players.size()) {
                 finishRound();
                 roundUp();
+            }
+            else if (currTurn == 0) {
+                currTurn = players.size();
+                gameState.add((GameEngine)this.clone());
+                currTurn = 0;
             }
         }
     }
@@ -642,6 +616,22 @@ public class GameEngine implements Cloneable, Serializable {
 
     public DoubleProperty getLoadProgress(){
         return loadProg;
+    }
+
+    public Color getPlayerColor(Integer playerInd){
+        return players.get(playerInd).getColor();
+
+    }
+
+    public Color getTeritoryColor(Integer teritoryId){
+        String conqueror = board.findObject(teritoryId).getConqueror();
+        if (conqueror !=null) {
+            Player player = findPlayer(conqueror);
+            if (player != null) {
+                return player.getColor();
+            }
+        }
+        return Color.WHITE;
     }
 }
 

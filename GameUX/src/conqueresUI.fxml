@@ -71,6 +71,7 @@
                         <Label fx:id="teritoryInfo" alignment="TOP_LEFT" prefHeight="200.0" prefWidth="261.0" wrapText="true" />
                      </children>
                   </FlowPane>
+                  <Label fx:id="roundsLeft" prefWidth="113.0" text="Rounds left:" />
                </children>
             </VBox>
          </right>

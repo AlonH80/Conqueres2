@@ -9,24 +9,22 @@
 
 <Pane fx:id="mPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="621.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Label fx:id="totalCost" layoutX="357.0" layoutY="364.0" prefHeight="17.0" prefWidth="123.0" text="Total turings: " />
+      <Label fx:id="turingsLabel" layoutX="357.0" layoutY="364.0" prefHeight="17.0" prefWidth="123.0" text="Total turings: " />
       <Button fx:id="confirmButton" layoutX="527.0" layoutY="359.0" mnemonicParsing="false" onAction="#confirmInput" text="Confirm" />
       <SplitPane dividerPositions="0.5" prefHeight="357.0" prefWidth="621.0">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <VBox fx:id="recoverVBox" prefHeight="355.0" prefWidth="305.0">
-                     <children>
-                        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="31.0" prefWidth="303.0" text="Recover" textAlignment="CENTER" />
-                     </children></VBox>
+                  <VBox fx:id="recoverLabelsVBox" layoutY="28.0" prefHeight="327.0" prefWidth="147.0" />
+                  <VBox fx:id="recoverSpinners" layoutX="153.0" layoutY="29.0" prefHeight="319.0" prefWidth="147.0" />
+                  <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="31.0" prefWidth="303.0" text="Recover" textAlignment="CENTER" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <VBox fx:id="newUnitsVBox" prefHeight="357.0" prefWidth="306.0">
-                     <children>
-                        <Label alignment="CENTER" prefHeight="32.0" prefWidth="306.0" text="Buy new units" />
-                     </children></VBox>
+                  <Label alignment="CENTER" prefHeight="32.0" prefWidth="306.0" text="Buy new units" />
+                  <VBox fx:id="newUnitsLabelsVBox" layoutY="28.0" prefHeight="327.0" prefWidth="147.0" />
+                  <VBox fx:id="newUnitsSpinners" layoutX="153.0" layoutY="32.0" prefHeight="319.0" prefWidth="147.0" />
                </children>
             </AnchorPane>
         </items>
