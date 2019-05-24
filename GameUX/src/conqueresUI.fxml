@@ -28,6 +28,7 @@
                   <Button fx:id="undoBtn" mnemonicParsing="false" onAction="#undo" text="Undo" />
                   <Button fx:id="historyBtn" mnemonicParsing="false" onAction="#history" text="History" />
                   <Button fx:id="saveGameBtn" mnemonicParsing="false" onAction="#saveGame" text="Save game" />
+                  <Button fx:id="endGameButton" mnemonicParsing="false" onAction="#endGame" text="End game" />
                </buttons>
                <effect>
                   <DropShadow />
@@ -62,13 +63,15 @@
                   <Label alignment="TOP_LEFT" prefHeight="17.0" prefWidth="110.0" text="Player" textAlignment="CENTER" />
                   <FlowPane prefHeight="200.0" prefWidth="200.0">
                      <children>
-                        <Label fx:id="playerInfo" alignment="TOP_LEFT" contentDisplay="CENTER" pickOnBounds="false" prefHeight="202.0" prefWidth="261.0" wrapText="true" />
+                        <Label fx:id="playerInfo" alignment="TOP_LEFT" contentDisplay="CENTER" pickOnBounds="false" prefHeight="171.0" prefWidth="261.0" wrapText="true" />
+                        <Button fx:id="forefitButton" mnemonicParsing="false" onAction="#forefit" text="Forefit" />
                      </children>
                   </FlowPane>
                   <Label prefHeight="26.0" prefWidth="165.0" text="Teritory" />
                   <FlowPane prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <Label fx:id="teritoryInfo" alignment="TOP_LEFT" prefHeight="200.0" prefWidth="261.0" wrapText="true" />
+                        <Button fx:id="armyButton" disable="true" mnemonicParsing="false" onAction="#showArmy" opacity="0.0" text="Army" />
                      </children>
                   </FlowPane>
                   <Label fx:id="roundsLeft" prefWidth="113.0" text="Rounds left:" />

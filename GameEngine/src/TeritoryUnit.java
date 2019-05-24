@@ -211,6 +211,20 @@ public class TeritoryUnit implements Cloneable, Serializable {
         return returnString;
     }
 
+    public String showDetails(ArrayList<ArmyUnit> armyTypes) {
+        String returnString = "Teritory ID: " + id +
+                System.lineSeparator() + "Army threshold: " + armyThreshold +
+                System.lineSeparator() + "Profit: " + profit + System.lineSeparator() + "Conqueror: ";
+        if (isConquered())
+            returnString += conqueror;
+        else
+            returnString += "None";
+        returnString += System.lineSeparator();
+        if (!conquerAble)
+            returnString += "Not conquerable" + System.lineSeparator();
+        return returnString;
+    }
+
     public Integer getMissingTuringsToRecoverUnitType(String unitType){
         return armyOnGround.stream().filter(un->un.getType().compareTo(unitType)==0).
                 mapToInt(un->(int)((un.getMaxFirePower()-un.getPower())*un.getSinglePowerCost())).sum();

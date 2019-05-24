@@ -39,6 +39,9 @@ public class GameUX extends Observable {
     @FXML private Button loadSavelBtn;
     @FXML private Button undoBtn;
     @FXML private Label roundsLeft;
+    @FXML private Button forefitButton;
+    @FXML private Button armyButton;
+    @FXML private Button endGameButton;
 
     private FXMLLoader root;
     private Parent mainPane;
@@ -119,6 +122,24 @@ public class GameUX extends Observable {
         notifyObservers("saveGame "+saveDirectory.getAbsolutePath());
     }
 
+    @FXML
+    void forefit(ActionEvent event){
+        setChanged();
+        notifyObservers("forefit");
+    }
+
+    @FXML
+    void showArmy(ActionEvent event){
+        setChanged();
+        notifyObservers("showArmy");
+    }
+
+    @FXML
+    void endGame(ActionEvent event) {
+        setChanged();
+        notifyObservers("endGame");
+    }
+
     public void bindPlayerInfo(StringProperty stringProperty){
         playerInfo.textProperty().bind(stringProperty);
     }
@@ -197,6 +218,20 @@ public class GameUX extends Observable {
             if (((Button)b).getText().compareTo("Exit")!=0)
                 ((Button)b).setDisable(cond);}
         );
+    }
+
+    public void setArmyShowButton(Boolean toActivate){
+        armyButton.setDisable(!toActivate);
+        if(toActivate){
+            armyButton.setOpacity(1);
+        }
+        else{
+            armyButton.setOpacity(0);
+        }
+    }
+
+    public void bindToDisableForefitButton(BooleanBinding prop){
+        forefitButton.disableProperty().bind(prop);
     }
 
 }

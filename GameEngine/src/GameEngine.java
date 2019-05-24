@@ -200,9 +200,7 @@ public class GameEngine implements Cloneable, Serializable {
     public String getGroundInfo(Integer terId){
         TeritoryUnit ter=board.findObject(terId);
         if (ter!=null) {
-            Boolean showArmy = false;
-            if (currTurn < players.size() && players.get(currTurn).getConqueredTeritoriesIds().contains(terId)) showArmy = true;
-            return ter.showDetails(showArmy, army);
+            return ter.showDetails(army);
         }
         return "";
     }
@@ -632,6 +630,52 @@ public class GameEngine implements Cloneable, Serializable {
             }
         }
         return Color.WHITE;
+    }
+
+    public ArrayList<ArrayList<String>> getArmyDetails(Integer terId){
+        ArrayList<ArrayList<String>> details = new ArrayList<>();
+        Map<String,ArrayList<ArmyUnit>> mapArmy = ArmyUnit.getArmyByType(board.findObject(terId).getArmyOnGround());
+        mapArmy.keySet().forEach(k->{
+            ArrayList<String> detailLine = new ArrayList<>();
+            detailLine.add(mapArmy.get(k).get(0).getType());
+            detailLine.add(mapArmy.get(k).get(0).getRank().toString());
+            detailLine.add(mapArmy.get(k).get(0).getPurchase().toString());
+            detailLine.add(mapArmy.get(k).get(0).getMaxFirePower().toString());
+            detailLine.add(mapArmy.get(k).get(0).getCompetenceReduction().toString());
+            detailLine.add(mapArmy.get(k).get(0).getSinglePowerCost().toString());
+            detailLine.add(getAllUnitInBoardOfPlayer(
+                    findPlayer(board.findObject(terId).getConqueror()),k
+            ).toString());
+            detailLine.add(Integer.valueOf(mapArmy.get(k).stream().mapToInt(ArmyUnit::getPower).sum()).toString());
+            details.add(detailLine);
+        });
+
+        return details;
+    }
+
+    public Integer getAllUnitInBoardOfPlayer(Player player, String unitType){
+        Integer totUnits = 0;
+        totUnits = player.getConqueredTeritories().stream().mapToInt(
+                ter -> ArmyUnit.getArmyByType(ter.getArmyOnGround()).get(unitType).size()
+        ).sum();
+        return totUnits;
+    }
+
+    public Integer getTeritoryTotalArmyPower(Integer terId){
+        return ArmyUnit.getTotalArmyPower(board.findObject(terId).getArmyOnGround());
+    }
+
+    public Integer getTeritoryMissingTuringsToRecover(Integer terId){
+        return board.findObject(terId).getMissingTuringsToRecoverArmy(army);
+    }
+
+    public void removePlayer(){
+        players.remove((int)currTurn);
+    }
+
+    public void endGame(){
+        currRound = 0;
+        isGameOver();
     }
 }
 

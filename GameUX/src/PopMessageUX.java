@@ -37,7 +37,7 @@ public class PopMessageUX implements Initializable {
     }
 
     public void setStage(Stage primaryStage) throws IOException {
-        primaryStage.setTitle("Error");
+        primaryStage.setTitle("");
         scene = new Scene(mPane,600,300);
         primaryStage.setScene(scene);
     }

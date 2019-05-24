@@ -100,7 +100,7 @@ public class ArmyUnit implements Cloneable, Serializable {
         this.unitId=value;
     }
 
-    public int getPurchase() {
+    public Integer getPurchase() {
         return purchase;
     }
 
@@ -108,7 +108,7 @@ public class ArmyUnit implements Cloneable, Serializable {
         this.purchase = value;
     }
 
-    public int getMaxFirePower() {
+    public Integer getMaxFirePower() {
         return maxFirePower;
     }
 
@@ -116,7 +116,7 @@ public class ArmyUnit implements Cloneable, Serializable {
         this.maxFirePower = value;
     }
 
-    public int getCompetenceReduction() {
+    public Integer getCompetenceReduction() {
         return competenceReduction;
     }
 
