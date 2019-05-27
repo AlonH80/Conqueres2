@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -25,12 +26,17 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class GameUX extends Observable {
+    public enum BackgroundColor {Dark, Light}
+
+    public final String DarkBackground = "#555555";
+    public final String LightBackground = "#DDDDDD";
+
     @FXML private ButtonBar gameAction;
     @FXML private TitledPane loadVbox;
     @FXML private Label playerInfo;
     @FXML private Label teritoryInfo;
     @FXML private GridPane gameBoard;
-    @FXML private ButtonBar roundAction;
+    @FXML private HBox roundAction;
     @FXML private Button newGameBtn;
     @FXML private Button newRoundBtn;
     @FXML private Button historyBtn;
@@ -42,9 +48,11 @@ public class GameUX extends Observable {
     @FXML private Button forefitButton;
     @FXML private Button armyButton;
     @FXML private Button endGameButton;
+    @FXML private ScrollPane boardScrollPane;
+    @FXML private BorderPane centerPane;
 
     private FXMLLoader root;
-    private Parent mainPane;
+    private ScrollPane mainPane;
     private Stage pStage;
 
     public GameUX(){
@@ -140,6 +148,24 @@ public class GameUX extends Observable {
         notifyObservers("endGame");
     }
 
+    @FXML
+    void changeBackgroundDark(ActionEvent event){
+        mainPane.setStyle("-fx-background: " + DarkBackground);
+        mainPane.getContent().setStyle("-fx-background-color: " + DarkBackground);
+        loadVbox.setStyle("-fx-background-color: " + DarkBackground);
+        boardScrollPane.setStyle("-fx-background: " + DarkBackground);
+        centerPane.setStyle("-fx-background-color: " + DarkBackground);
+    }
+
+    @FXML
+    void changeBackgroundLight(ActionEvent event){
+        mainPane.setStyle("-fx-background: " + LightBackground);
+        mainPane.getContent().setStyle("-fx-background-color: " + LightBackground);
+        loadVbox.setStyle("-fx-background-color: " + LightBackground);
+        boardScrollPane.setStyle("-fx-background: " + LightBackground);
+        centerPane.setStyle("-fx-background-color: " + LightBackground);
+    }
+
     public void bindPlayerInfo(StringProperty stringProperty){
         playerInfo.textProperty().bind(stringProperty);
     }
@@ -163,7 +189,7 @@ public class GameUX extends Observable {
     }
 
     public void bindRoundActionButtons(BooleanBinding bool){
-        roundAction.getButtons().forEach(b->b.disableProperty().bind(bool));
+        roundAction.getChildren().forEach(b->b.disableProperty().bind(bool));
     }
 
     public void bindRoundsLeftLabel(IntegerBinding intBinding) {
@@ -183,34 +209,41 @@ public class GameUX extends Observable {
     }
 
     public void setGameBoard(Integer rows, Integer columns){
+        gameBoard.getChildren().clear();
         for (int i = 0; i < rows; ++i){
-            gameBoard.addColumn(i);
+            gameBoard.addRow(i);
             for (int j = 0;j < columns; ++j){
                 gameBoard.addColumn(j);
                 Button cell = new Button();
                 final Integer currId = i*columns+j+1;
                 cell.setText(currId.toString());
+                cell.setId("boardButton");
+                cell.setAlignment(Pos.CENTER);
                 cell.setOnAction(e->{setChanged(); notifyObservers("territory "+currId);});
-                gameBoard.add(cell, i, j);
+                gameBoard.add(cell, j, i);
             }
         }
     }
 
     public void setTeritoryColor(Integer terId, Color col){
         Button terButton = (Button)gameBoard.getChildren().get(terId-1);
-        ArrayList<StringBuilder> rgbHexStr = new ArrayList<>(3);
 
-        rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getRed()*255),16)));
-        rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getGreen()*255),16)));
-        rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getBlue()*255),16)));
+        if (col == Color.TRANSPARENT)
+            terButton.setStyle(null);
+        else {
+            ArrayList<StringBuilder> rgbHexStr = new ArrayList<>(3);
 
-        for (StringBuilder c:rgbHexStr){
-            if(c.length() == 1){
-                c.insert(0,"0");
+            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getRed()*255),16)));
+            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getGreen()*255),16)));
+            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getBlue()*255),16)));
+
+            for (StringBuilder c:rgbHexStr){
+                if(c.length() == 1){
+                    c.insert(0,"0");
+                }
             }
+            terButton.setStyle("-fx-background-color: #" + rgbHexStr.get(0).toString() + rgbHexStr.get(1).toString() + rgbHexStr.get(2).toString());
         }
-
-        terButton.setStyle("-fx-background-color: #"+rgbHexStr.get(0).toString()+rgbHexStr.get(1).toString()+rgbHexStr.get(2).toString());
     }
 
     public void setLoaders(Boolean cond){
@@ -232,6 +265,10 @@ public class GameUX extends Observable {
 
     public void bindToDisableForefitButton(BooleanBinding prop){
         forefitButton.disableProperty().bind(prop);
+    }
+
+    public void setBackground(BackgroundColor color){
+
     }
 
 }

@@ -1,0 +1,35 @@
+:root{
+    --hgt: 30px;
+}
+
+#pane{
+    -fx-background-color: #999999;
+}
+
+#boardButton {
+    -fx-pref-height: 40px;
+    -fx-pref-width: 50px;
+    -fx-min-height: 40px;
+    -fx-min-width: 50px;
+    -fx-wrap-text: true;
+}
+
+#inRoundBox {
+    -fx-spacing: 10px;
+}
+
+#inRoundButton {
+    -fx-pref-height: 30px;
+    -fx-pref-width: 100px;    
+    -fx-min-height: 30px;
+    -fx-min-width: 100px;
+}
+
+#board{
+	-fx-Vgap: 10px;
+	-fx-Hgap: 10px;
+}
+
+ScrollPane{
+    -fx-background: #999999;
+}

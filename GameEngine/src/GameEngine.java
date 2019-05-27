@@ -40,7 +40,7 @@ public class GameEngine implements Cloneable, Serializable {
     protected Integer currTurn;
     protected final Integer numOfChecks = 31;
     protected Integer checks = 0;
-    protected transient DoubleProperty loadProg;
+    protected DoubleProperty loadProg;
 
     public GameEngine(){
         players=new ArrayList<>(2);
@@ -609,7 +609,7 @@ public class GameEngine implements Cloneable, Serializable {
 
     private void updateProgress(Integer checksMade){
         checks += checksMade;
-        loadProg.setValue(((double)checks)/checksMade);
+        loadProg.setValue(((double)checks)/numOfChecks);
     }
 
     public DoubleProperty getLoadProgress(){
@@ -629,7 +629,7 @@ public class GameEngine implements Cloneable, Serializable {
                 return player.getColor();
             }
         }
-        return Color.WHITE;
+        return Color.TRANSPARENT;
     }
 
     public ArrayList<ArrayList<String>> getArmyDetails(Integer terId){
@@ -670,6 +670,12 @@ public class GameEngine implements Cloneable, Serializable {
     }
 
     public void removePlayer(){
+        Player playerToRemove = players.get((int)currTurn);
+        playerToRemove.getConqueredTeritoriesIds().forEach(terId -> {
+            TeritoryUnit ter = board.findObject(terId);
+            ter.setConqueror(null);
+            ter.clearArmy();
+        });
         players.remove((int)currTurn);
     }
 

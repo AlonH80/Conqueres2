@@ -91,8 +91,8 @@ public class GameController implements Observer {
 
     public void loadXML() throws Exception {
         FileLoaderUX loaderScene = new FileLoaderUX();
-        runCommand(()->{System.out.println(gameEngine.loadFile(args.get(1)));Platform.runLater(()->loaderScene.enableFinishLoader());});
         loaderScene.bindProgressBar(gameEngine.getLoadProgress());
+        runCommand(()->{System.out.println(gameEngine.loadFile(args.get(1)));Platform.runLater(()->loaderScene.enableFinishLoader());});
         loaderScene.launchLoader();
     }
 
@@ -193,7 +193,6 @@ public class GameController implements Observer {
                 if (GameEngine.gameState.size() > 0) {
                     gameEngine = (GameEngine) GameEngine.getLastGameState().clone();
                     GameEngine.gameState.remove(GameEngine.gameState.size() - 1);
-                    popMessage("Undo succesfully done.");
                     reShowTerritory();
                     Platform.runLater(()->roundsleft.setValue(gameEngine.getCurrRound()));
                 } else {
@@ -203,6 +202,7 @@ public class GameController implements Observer {
                 System.out.println("Start new game first.");
             }
         });
+        popMessage("Undo succesfully done.");
     }
 
     public void exit(){
