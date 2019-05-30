@@ -30,6 +30,7 @@ public class GameController implements Observer {
     private Integer currTerritoryId = 0;
     private BooleanProperty inRound;
     private BooleanProperty inRoundAction;
+    private BooleanProperty replayEnable;
     private ArrayList<String> args;
     private RoundAction actionFlag = RoundAction.NO_ACTION;
     private ArrayList<Thread> threads;
@@ -42,6 +43,7 @@ public class GameController implements Observer {
         currTerritoryInfo = new SimpleStringProperty("");
         inRound = new SimpleBooleanProperty(false);
         inRoundAction = new SimpleBooleanProperty(false);
+        replayEnable = new SimpleBooleanProperty(false);
         roundsleft = new SimpleIntegerProperty(0);
         gameUX.bindPlayerInfo(currPlayerInfo);
         gameUX.bindTeritoryInfo(currTerritoryInfo);
@@ -52,6 +54,7 @@ public class GameController implements Observer {
         gameUX.bindRoundsLeftLabel(roundsleft.add(0));
         gameUX.bindToDisableForefitButton(inRound.not());
         gameUX.bindEndGameButton(gameEngine.getGameSet().not());
+        gameUX.bindDisableReplay(replayEnable.not());
         args = new ArrayList<>();
         threads = new ArrayList<>();
     }
@@ -111,6 +114,7 @@ public class GameController implements Observer {
         Platform.runLater(()->gameUX.setGameBoard(gameEngine.getBoard().getRows(),gameEngine.getBoard().getColumns()));
         Platform.runLater(()->gameUX.clearPlayersBox());
         Platform.runLater(()->gameEngine.getPlayers().forEach(pla->gameUX.addPlayerToVbox(pla.getName())));
+        Platform.runLater(()->replayEnable.setValue(false));
     }
 
     public void territory(){
@@ -312,12 +316,32 @@ public class GameController implements Observer {
         }
     }
 
+    private void replayShowArmy(){
+        try {
+            GameEngine currGameEngine = getState();
+            showArmyUX = new ShowArmyUX();
+            ArrayList<ArrayList<String>> details = currGameEngine.getArmyDetails(replayUX.getCurrTerritory());
+            showArmyUX.setTable(details);
+            showArmyUX.setTotalPowerLabel(currGameEngine.getTeritoryTotalArmyPower(replayUX.getCurrTerritory()));
+            showArmyUX.setTuringsToRecoverLabel(currGameEngine.getTeritoryMissingTuringsToRecover(replayUX.getCurrTerritory()));
+            showArmyUX.launchStage();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
     private void forefit(){
         gameEngine.removePlayer();
         if (gameEngine.getPlayers().size() == 0){
             endGame();
         }
-        nextPlayer();
+        gameUX.clearPlayersBox();
+        gameEngine.getPlayers().forEach(pla->gameUX.addPlayerToVbox(pla.getName()));
+        playerInfo();
+        gameUX.paintPlayerButton(gameEngine.getCurrTurn(), gameEngine.getPlayerColor(gameEngine.getCurrTurn()));
+        reShowTerritory();
+        //nextPlayer();
     }
 
     private void endGame(){
@@ -325,6 +349,7 @@ public class GameController implements Observer {
         roundsleft.setValue(gameEngine.getCurrRound());
         currPlayerInfo.setValue("");
         inRound.setValue(false);
+        replayEnable.setValue(true);
         gameUX.clearPlayersButtonsColor();
         announceWinner();
     }
@@ -343,8 +368,9 @@ public class GameController implements Observer {
     }
 
     private void playerInfo(){
-        String playerName = args.get(1);
-        currPlayerInfo.setValue(gameEngine.findPlayer(playerName).toString());
+        //String playerName = args.get(1);
+        //currPlayerInfo.setValue(gameEngine.findPlayer(playerName).toString());
+        currPlayerInfo.setValue(gameEngine.getPlayers().get(gameEngine.currTurn).toString());
     }
 
     private void replay() throws Exception{
@@ -365,6 +391,9 @@ public class GameController implements Observer {
         paintTerritoriesAccordingToState();
         replayPlayerInfo();
         replayTerritory();
+        replayUX.clearPlayersVbox();
+        getState().getPlayers().forEach(pla->replayUX.addPlayerToVbox(pla.getName(), pla.getColor()));
+
     }
 
     private void paintTerritoriesAccordingToState(){

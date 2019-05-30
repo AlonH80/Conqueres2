@@ -50,7 +50,7 @@ public class ShowArmyUX implements Initializable {
     public void setStage() throws IOException {
             pStage = new Stage();
             pStage.setTitle("Army on ground");
-            scene = new Scene(mPane,600,300);
+            scene = new Scene(mPane,1000,400);
             pStage.setScene(scene);
     }
 

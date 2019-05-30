@@ -8,8 +8,6 @@ import java.util.Random;
 public class Player implements Cloneable, Serializable {
     public enum AttackingMethod {CALCULATED, LOTTERY}
 
-    ;
-
     public static final Double UNDERDOG_WINNING_FACTOR = 0.5;
     public static Integer numOfPlayers = 0;
 
@@ -111,7 +109,7 @@ public class Player implements Cloneable, Serializable {
             ter.setConqueror(this);
             ter.setArmyOnGround(defGroundUnits);
             String armyDetails = ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(defGroundUnits));
-            return (name + " conquered territory " + ter.getId() + System.lineSeparator() + armyDetails);
+            return (name + " conquered territory " + ter.getId() + System.lineSeparator() +"Army details: " + armyDetails);
         } else {
             refundUnits(defGroundUnits);
         }
@@ -196,6 +194,7 @@ public class Player implements Cloneable, Serializable {
     public String toString() {
         StringBuilder retString = new StringBuilder(new String());
         retString.append(name + System.lineSeparator());
+        retString.append(color.toString() + System.lineSeparator());
         retString.append("Turings: " + turings.toString() + System.lineSeparator());
         retString.append("Conquered territories: " + System.lineSeparator());
         conqueredTeritories.forEach(ter -> retString.append(ter.getId().toString() + " "));
@@ -350,7 +349,7 @@ public class Player implements Cloneable, Serializable {
         result = "Teritory unit power: " + teritoryArmyPower + ", Attack power: " + attackPower + ", Lottery: " + lottery + System.lineSeparator();
         if (lottery - teritoryArmyPower >= 0) {  // Attacker won
             teritory.clearArmy();
-            result += "Attacker won.";
+            result += "Attacker won." + System.lineSeparator();
             if (attackPower > teritoryArmyPower) {
                 ArmyUnit.reducePowerToAllUnits(attackUnit, ((double) teritoryArmyPower) / attackPower);
             } else {
@@ -363,11 +362,11 @@ public class Player implements Cloneable, Serializable {
 
             } else {
                 teritory.setConqueror(null);
-                result += " however, his army doesn't have enough power to rule.";
+                result += " however, his army doesn't have enough power to rule." + System.lineSeparator();
                 refundUnits(attackUnit);
             }
         } else { // Ground unit won
-            result += "The army in the teritory succeed to defend it! ";
+            result += "The army in the teritory succeed to defend it! " + System.lineSeparator();
             if (teritoryArmyPower > attackPower) {
                 teritory.reducePowerToAllUnits(((double) attackPower / teritoryArmyPower));
             } else {
@@ -375,12 +374,15 @@ public class Player implements Cloneable, Serializable {
             }
             if (!teritory.isEnoughPowerToRule()) {
                 teritory.setConqueror(null);
-                result += "However, the army doesn't have enough power to rule.";
+                result += "However, the army doesn't have enough power to rule." + System.lineSeparator();
             }
         }
 
         result += "Battle details: " + System.lineSeparator();
+        result += "Attacking unit: " + System.lineSeparator();
         result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(attackUnit))  + System.lineSeparator();
+        result += System.lineSeparator();
+        result += "Defending unit: " + System.lineSeparator();
         result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(teritory.getArmyOnGround()));
 
         return result;

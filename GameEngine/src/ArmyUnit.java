@@ -36,17 +36,6 @@ public class ArmyUnit implements Cloneable, Serializable {
         rank=1;
     }
 
-    /*public ArmyUnit(String type,Integer rank){
-        unitId=generateId();
-        setType(type);
-        setRank(rank);
-        singlePowerCost=DEFAULT_POWER_COST;
-        maxFirePower=DEFAULT_MAX_POWER;
-        competenceReduction=DEFAULT_REDUCTION;
-        power=DEFAULT_MAX_POWER;
-        purchase=DEFAULT_PURCHASE;
-    }*/
-
     public ArmyUnit(ArmyUnit otherUnit){
         this.purchase=otherUnit.purchase;
         this.maxFirePower=otherUnit.maxFirePower;

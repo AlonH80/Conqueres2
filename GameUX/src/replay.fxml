@@ -57,7 +57,7 @@
          <left>
             <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="487.0" prefWidth="160.0" spacing="5.0" BorderPane.alignment="TOP_LEFT">
                <children>
-                  <Label text="Players" />
+                  <Label prefHeight="33.0" prefWidth="71.0" text="Players" />
                   <VBox fx:id="playersVbox" prefHeight="239.0" prefWidth="160.0" spacing="10.0" VBox.vgrow="NEVER" />
                </children>
             </VBox>

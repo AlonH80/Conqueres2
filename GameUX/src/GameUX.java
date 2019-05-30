@@ -203,6 +203,10 @@ public class GameUX extends Observable {
         roundsLeft.textProperty().bind(new SimpleStringProperty("Rounds left: ").concat(intBinding));
     }
 
+    public void bindDisableReplay(BooleanBinding bool){
+        replayBtn.disableProperty().bind(bool);
+    }
+
     public void setContoller(Observer observer){
         addObserver(observer);
     }
@@ -262,10 +266,6 @@ public class GameUX extends Observable {
 
     public void bindToDisableForefitButton(BooleanBinding prop){
         forefitButton.disableProperty().bind(prop);
-    }
-
-    public void setBackground(BackgroundColor color){
-
     }
 
     public void addPlayerToVbox(String playerName){

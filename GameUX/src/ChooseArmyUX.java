@@ -21,7 +21,7 @@ import java.util.*;
 
 public class ChooseArmyUX implements Initializable {
 
-    @FXML private Pane mainPane;
+    @FXML private ScrollPane mainPane;
     @FXML private Label turingsLabel;
     @FXML private VBox spinners;
     @FXML private VBox spinnersLabels;
@@ -53,7 +53,7 @@ public class ChooseArmyUX implements Initializable {
     @FXML
     void confirmInput(ActionEvent event) {
         army = new HashMap<>();
-        units.keySet().forEach(k->army.put(k.getText(),units.get(k).getValue()));
+        units.keySet().forEach(k->army.put(k.getText().substring(0, k.getText().indexOf('(') - 1),units.get(k).getValue()));
         pStage.close();
         if (deterministAttack.selectedProperty().getValue() == true){
             notifier.notifyController("getArmy determinist");
@@ -85,8 +85,9 @@ public class ChooseArmyUX implements Initializable {
         this.units = new HashMap<>();
         units.keySet().forEach(k ->{
             Label label = new Label();
-            label.textProperty().setValue(k + "(" + units.get((k)) + " turings each)");
-            label.setAlignment(Pos.CENTER_RIGHT);
+            label.setPrefHeight(25);
+            label.textProperty().setValue(k + " (" + units.get((k)) + " turings each)");
+            label.setAlignment(Pos.CENTER);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
 
             spinner.valueProperty().addListener((obs, oldValue, newValue) ->

@@ -54,6 +54,7 @@ public class GameEngine implements Cloneable, Serializable {
         valid = new SimpleBooleanProperty(false);
         gameSet = new SimpleBooleanProperty(false);
         loadProg = new SimpleDoubleProperty(0);
+        leader = new AbstractMap.SimpleEntry<>("", 0);
     }
 
     public GameBoard getBoard() {
@@ -67,12 +68,15 @@ public class GameEngine implements Cloneable, Serializable {
     public void setGame() {
         setBoard();
         currRound = totalCycles;
-        valid.setValue(true);
+        //valid.setValue(true);
         gameSet.setValue(true);
         boardHistory.add(board.toString());
         leader = new AbstractMap.SimpleEntry<>("", 0);
         currTurn = players.size();
-        players.forEach(p-> {if (p!=null) p.getConqueredTeritories().clear();});
+        players.forEach(p-> {
+            if (p!=null) p.getConqueredTeritories().clear();
+            p.setTurings(initialFunds);
+        });
         gameState.clear();
     }
 
@@ -128,7 +132,7 @@ public class GameEngine implements Cloneable, Serializable {
     public String playerConquer(Integer territoryId,Map<String,Integer> attackingForce, Player.AttackingMethod attackingMethod){
         Player conqueror = players.get(currTurn);
         TeritoryUnit teritory = board.findObject(territoryId);
-        ArrayList<ArmyUnit> attackingUnits=playerBuyUnits(conqueror.getName(),attackingForce);
+        ArrayList<ArmyUnit> attackingUnits = playerBuyUnits(conqueror.getName(),attackingForce);
         String retVal="";
         if (teritory != null && teritory.isConquered()){
             Player prevConqueror = findPlayer(teritory.getConqueror());
@@ -146,10 +150,6 @@ public class GameEngine implements Cloneable, Serializable {
         }
         return retVal;
     }
-
-    /*public void roundUp(){
-        players.forEach(Player::roundUp);
-    }*/
 
     public void finishRound(){
         --currRound;
@@ -218,7 +218,7 @@ public class GameEngine implements Cloneable, Serializable {
         return player.getTurings();
     }
 
-    public Map<Integer, Boolean> getAvailableTeritoryToConquer(/*String playerName*/){
+    public Map<Integer, Boolean> getAvailableTeritoryToConquer(){
         Player player = players.get(currTurn);
         Map<Integer, Boolean> availableGrounds=new HashMap<>();
         ArrayList<TeritoryUnit> conqueredUnits=player.getConqueredTeritories();
@@ -261,7 +261,7 @@ public class GameEngine implements Cloneable, Serializable {
 
     public ArrayList<ArmyUnit> playerBuyUnits(String playerName,Map <String,Integer> unitsToBuy){
         Player player = findPlayer(playerName);
-        ArrayList<ArmyUnit> cart=new ArrayList<>();
+        ArrayList<ArmyUnit> cart = new ArrayList<>();
         for (String key:unitsToBuy.keySet()){
             for (int i=0;i<unitsToBuy.get(key);++i){
                 cart.add(new ArmyUnit(ArmyUnit.findNextUnit(army,key)));
@@ -272,8 +272,9 @@ public class GameEngine implements Cloneable, Serializable {
 
     public Boolean isGameOver(){
         if (currRound <= 0){
-            if (gameState.size() < totalCycles+1){
+            if (currRound == 0){
                 gameState.add((GameEngine)this.clone());
+                --currRound;
             }
             gameSet.setValue(false);
             return true;
@@ -346,15 +347,6 @@ public class GameEngine implements Cloneable, Serializable {
         }
         return leader;
     }
-
-    /*public String showGameDetails(){
-        StringBuilder retString = new StringBuilder(new String());
-        retString.append(showWorldsMap());
-        retString.append("Number of rounds played: "+(totalCycles-currRound)+" / "+totalCycles+System.lineSeparator());
-        players.forEach(pla->retString.append(pla.showDetailsGameDescriptor()+System.lineSeparator()));
-        return retString.toString();
-
-    }*/
 
     public String loadFile(String fileName){
         GameDescriptor gameDescriptor;

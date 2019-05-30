@@ -59,8 +59,8 @@ public class BoostArmyUX implements Initializable {
     void confirmInput(ActionEvent event) {
         armyBoost = new HashMap<>();
         armyNew = new HashMap<>();
-        unitsBoost.keySet().forEach(k->armyBoost.put(k.getText(),unitsBoost.get(k).getValue()));
-        unitsNew.keySet().forEach(k->armyNew.put(k.getText(),unitsNew.get(k).getValue()));
+        unitsBoost.keySet().forEach(k->armyBoost.put(k.getText().substring(0, k.getText().indexOf('(')-1),unitsBoost.get(k).getValue()));
+        unitsNew.keySet().forEach(k->armyNew.put(k.getText().substring(0, k.getText().indexOf('(')-1),unitsNew.get(k).getValue()));
         pStage.close();
         notifier.notifyController("getBoostArmy");
     }
@@ -87,8 +87,9 @@ public class BoostArmyUX implements Initializable {
         this.unitsBoost = new HashMap<>();
         unitsTotalRec.keySet().forEach(k ->{
             Label label = new Label();
+            label.setPrefWidth(25);
             label.textProperty().setValue(k + "(" + unitsRecEach.get((k)) + " turings each power unit)");
-            label.setAlignment(Pos.CENTER_RIGHT);
+            label.setAlignment(Pos.CENTER);
             Spinner<Integer> spinner = new Spinner<>(0,unitsTotalRec.get(k),0);
             spinner.valueProperty().addListener((obs, oldValue, newValue) ->{
                     updateTuringsLabel(oldValue, newValue, 1);
@@ -105,8 +106,9 @@ public class BoostArmyUX implements Initializable {
         this.unitsNew = new HashMap<>();
         units.keySet().forEach(k ->{
             Label label = new Label();
-            label.textProperty().setValue(k + "(" + units.get((k)) + " turings each power unit)");
-            label.setAlignment(Pos.CENTER_RIGHT);
+            label.setPrefWidth(25);
+            label.textProperty().setValue(k + " (" + units.get((k)) + " turings each power unit)");
+            label.setAlignment(Pos.CENTER);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
             spinner.valueProperty().addListener((obs, oldValue, newValue) -> {
                 updateTuringsLabel(oldValue, newValue, units.get(k));

@@ -68,7 +68,7 @@ public class ReplayUX extends Observable implements Initializable {
 
     public void setStage(Stage primaryStage) throws IOException {
         primaryStage.setTitle("Replay");
-        scene = new Scene(mPane,700,400);
+        scene = new Scene(mPane,900,800);
         primaryStage.setScene(scene);
     }
 
@@ -117,6 +117,7 @@ public class ReplayUX extends Observable implements Initializable {
 
     @FXML
     void showArmy(ActionEvent event){
+        setChanged();
         notifyObservers("replayShowArmy");
     }
 
@@ -179,5 +180,9 @@ public class ReplayUX extends Observable implements Initializable {
         });
 
         playersVbox.getChildren().add(playerButton);
+    }
+
+    public void clearPlayersVbox(){
+        playersVbox.getChildren().clear();
     }
 }
