@@ -2,6 +2,7 @@ import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -20,12 +21,11 @@ import java.util.ResourceBundle;
 public class FileLoaderUX implements Initializable {
 
     @FXML private ProgressBar progressBar;
-
     @FXML private Button info;
-
     @FXML private BorderPane mPane;
-    Scene scene;
+    @FXML private Label messageLabel;
 
+    Scene scene;
     Stage pStage;
 
     private FXMLLoader root;
@@ -35,6 +35,7 @@ public class FileLoaderUX implements Initializable {
         root.setController(this);
         mPane = root.load();
         info.setOnAction(e->exitLoader());
+        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     public void setStage(Stage primaryStage) throws IOException {
@@ -60,6 +61,10 @@ public class FileLoaderUX implements Initializable {
     public void enableFinishLoader(){
         info.setDisable(false);
         info.setText("OK");
+    }
+
+    public void bindMessageLabel(StringProperty message){
+        messageLabel.textProperty().bind(message);
     }
 
     @Override

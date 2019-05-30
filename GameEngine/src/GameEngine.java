@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
+import javafx.util.Pair;
 
 import javax.xml.bind.JAXBException;
 
@@ -27,7 +29,7 @@ public class GameEngine implements Cloneable, Serializable {
     private ArrayList<Player> players;
     private Integer currRound;
     private ArrayList<String> boardHistory;
-    private String leader;
+    private AbstractMap.SimpleEntry<String, Integer> leader;
     protected GameBoard board;
     protected int initialFunds;
     protected ArrayList<ArmyUnit> army;
@@ -63,16 +65,15 @@ public class GameEngine implements Cloneable, Serializable {
     }
 
     public void setGame() {
-        //new File("csf_files").mkdir();
-        //players.clear();
-        //Player.numOfPlayers = 0;
-        //setPlayer(player1Name, 0);
-        //setPlayer(player2Name, 1);
         setBoard();
         currRound = totalCycles;
         valid.setValue(true);
         gameSet.setValue(true);
         boardHistory.add(board.toString());
+        leader = new AbstractMap.SimpleEntry<>("", 0);
+        currTurn = players.size();
+        players.forEach(p-> {if (p!=null) p.getConqueredTeritories().clear();});
+        gameState.clear();
     }
 
     public BooleanProperty getGameSet(){
@@ -113,10 +114,12 @@ public class GameEngine implements Cloneable, Serializable {
         return terIds;
     }
 
-    private Player findPlayer(String playerName){
-        for (Player player:players){
-            if (player.getName().compareTo(playerName)==0){
-                return player;
+    public Player findPlayer(String playerName){
+        if (playerName!=null) {
+            for (Player player : players) {
+                if (player.getName().compareTo(playerName) == 0) {
+                    return player;
+                }
             }
         }
         return null;
@@ -144,9 +147,9 @@ public class GameEngine implements Cloneable, Serializable {
         return retVal;
     }
 
-    public void roundUp(){
+    /*public void roundUp(){
         players.forEach(Player::roundUp);
-    }
+    }*/
 
     public void finishRound(){
         --currRound;
@@ -269,7 +272,9 @@ public class GameEngine implements Cloneable, Serializable {
 
     public Boolean isGameOver(){
         if (currRound <= 0){
-            //valid.setValue(false);
+            if (gameState.size() < totalCycles+1){
+                gameState.add((GameEngine)this.clone());
+            }
             gameSet.setValue(false);
             return true;
         }
@@ -309,6 +314,8 @@ public class GameEngine implements Cloneable, Serializable {
     public void setLeader(){
         int maxTotalProfit=-1;
         ArrayList<String> leaders = new ArrayList<>();
+        String leaderString = new String();
+
         for (Player player:players){
             if (player.getTotalProfitFromConqueredUnits() > maxTotalProfit){
                 leaders.clear();
@@ -320,16 +327,23 @@ public class GameEngine implements Cloneable, Serializable {
             }
         }
         if (leaders.size()>1){
-            leader = "Tie between: ";
-            leaders.forEach(le->leader+=le+", ");
-            leader = leader.substring(0,leader.length()-2);
+            leaderString = "Tie between:";
+            for(String le : leaders){
+                leaderString +=  " " + le + ",";
+            }
+            leaderString = leaderString.substring(0, leaderString.length()-1);
         }
         else{
-            leader = leaders.get(0);
+            leaderString = leaders.get(0);
         }
+
+        leader = new AbstractMap.SimpleEntry<>(leaderString, maxTotalProfit);
     }
 
-    public String getLeader(){
+    public AbstractMap.SimpleEntry<String, Integer> getLeader(){
+        if (leader.getKey().equals("")){
+            setLeader();
+        }
         return leader;
     }
 
@@ -423,6 +437,7 @@ public class GameEngine implements Cloneable, Serializable {
         updateProgress(1);
         defaultProfit = gameDescriptor.getGame().getTerritories().getDefaultProfit().intValue();
         updateProgress(1);
+        army.clear();
         for(Unit un:gameDescriptor.getGame().getArmy().getUnit()){
             army.add(new ArmyUnit(un));
         }
@@ -433,6 +448,7 @@ public class GameEngine implements Cloneable, Serializable {
         }
         updateProgress(1);
         Integer col = 0;
+        players.clear();
         for (generated.Player pla:gameDescriptor.getPlayers().getPlayer()){
             players.add(new Player(pla.getId().intValue(),pla.getName(),colors[col++]));
             players.get(players.size()-1).setTurings(initialFunds);
@@ -597,12 +613,15 @@ public class GameEngine implements Cloneable, Serializable {
             currTurn %= (players.size()+1);
             if (currTurn==players.size()) {
                 finishRound();
-                roundUp();
+                //roundUp();
             }
-            else if (currTurn == 0) {
-                currTurn = players.size();
-                gameState.add((GameEngine)this.clone());
-                currTurn = 0;
+            else {
+                if (currTurn == 0) {
+                    //currTurn = players.size();
+                    gameState.add((GameEngine) this.clone());
+                    currTurn = 0;
+                }
+                players.get(currTurn).roundUp();
             }
         }
     }
@@ -682,6 +701,14 @@ public class GameEngine implements Cloneable, Serializable {
     public void endGame(){
         currRound = 0;
         isGameOver();
+    }
+
+    public static GameEngine getState(Integer ind){
+        if (ind >= gameState.size()){
+            throw new IndexOutOfBoundsException("Invalid input index for game state");
+        }
+
+        return gameState.get(ind);
     }
 }
 

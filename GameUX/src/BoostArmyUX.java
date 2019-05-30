@@ -9,6 +9,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -47,6 +48,7 @@ public class BoostArmyUX implements Initializable {
         root = new FXMLLoader(getClass().getResource("boostArmy.fxml"));
         root.setController(this);
         mPane = root.load();
+        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     public void setNotifier(Observer observer){
@@ -81,14 +83,16 @@ public class BoostArmyUX implements Initializable {
         primaryStage.setScene(scene);
     }
 
-    public void setRecoverSpinners(Map<String,Integer> units){
+    public void setRecoverSpinners(Map<String,Integer> unitsTotalRec, Map<String,Double> unitsRecEach, Integer totTurings){
         this.unitsBoost = new HashMap<>();
-        units.keySet().forEach(k ->{
+        unitsTotalRec.keySet().forEach(k ->{
             Label label = new Label();
-            label.textProperty().setValue(k);
-            Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
-            spinner.valueProperty().addListener((obs, oldValue, newValue) ->
-                    updateTuringsLabel(oldValue, newValue, 1));
+            label.textProperty().setValue(k + "(" + unitsRecEach.get((k)) + " turings each power unit)");
+            label.setAlignment(Pos.CENTER_RIGHT);
+            Spinner<Integer> spinner = new Spinner<>(0,unitsTotalRec.get(k),0);
+            spinner.valueProperty().addListener((obs, oldValue, newValue) ->{
+                    updateTuringsLabel(oldValue, newValue, 1);
+            });
             this.unitsBoost.put(label,spinner);
         });
         this.unitsBoost.keySet().forEach(k->{
@@ -97,14 +101,16 @@ public class BoostArmyUX implements Initializable {
         });
     }
 
-    public void setNewUnitsSpinners(Map<String,Integer> units){
+    public void setNewUnitsSpinners(Map<String,Integer> units, Integer totTurings){
         this.unitsNew = new HashMap<>();
         units.keySet().forEach(k ->{
             Label label = new Label();
-            label.textProperty().setValue(k);
+            label.textProperty().setValue(k + "(" + units.get((k)) + " turings each power unit)");
+            label.setAlignment(Pos.CENTER_RIGHT);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
-            spinner.valueProperty().addListener((obs, oldValue, newValue) ->
-                    updateTuringsLabel(oldValue, newValue, units.get(k)));
+            spinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+                updateTuringsLabel(oldValue, newValue, units.get(k));
+            });
             this.unitsNew.put(label,spinner);
         });
         this.unitsNew.keySet().forEach(k->{
@@ -123,21 +129,13 @@ public class BoostArmyUX implements Initializable {
         return armyNew;
     }
 
-    public Map<String,Integer> getArmyBoost(){
-        return armyBoost;
-    }
-/*
-    public VBox getRecoverVBox(){
-        return recoverVBox;
-    }
-
-    public VBox getNewUnitsVBoxVBox(){
-        return newUnitsVBox;
-    }
-*/
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+    }
+
+    public Map<String,Integer> getArmyBoost(){
+        return armyBoost;
     }
 
     private class BoostArmyNotifier extends Observable {

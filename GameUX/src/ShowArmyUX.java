@@ -39,6 +39,7 @@ public class ShowArmyUX implements Initializable {
         FXMLLoader root = new FXMLLoader(getClass().getResource("showArmy.fxml"));
         root.setController(this);
         mPane = root.load();
+        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     @FXML

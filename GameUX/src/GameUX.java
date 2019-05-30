@@ -28,8 +28,9 @@ import java.util.Observer;
 public class GameUX extends Observable {
     public enum BackgroundColor {Dark, Light}
 
-    public final String DarkBackground = "#555555";
-    public final String LightBackground = "#DDDDDD";
+    public static final String DarkBackground = "#555555";
+    public static final String LightBackground = "#DDDDDD";
+    public static final String RedBackground = "#AA1111";
 
     @FXML private ButtonBar gameAction;
     @FXML private TitledPane loadVbox;
@@ -39,7 +40,7 @@ public class GameUX extends Observable {
     @FXML private HBox roundAction;
     @FXML private Button newGameBtn;
     @FXML private Button newRoundBtn;
-    @FXML private Button historyBtn;
+    @FXML private Button replayBtn;
     @FXML private Button saveGameBtn;
     @FXML private Button loadXmlBtn;
     @FXML private Button loadSavelBtn;
@@ -50,10 +51,12 @@ public class GameUX extends Observable {
     @FXML private Button endGameButton;
     @FXML private ScrollPane boardScrollPane;
     @FXML private BorderPane centerPane;
+    @FXML private VBox playersBox;
 
     private FXMLLoader root;
     private ScrollPane mainPane;
     private Stage pStage;
+    private static String backgroundColor = DarkBackground;
 
     public GameUX(){
         root = new FXMLLoader(getClass().getResource("conqueresUI.fxml"));
@@ -88,7 +91,7 @@ public class GameUX extends Observable {
     }
 
     @FXML
-    void history(ActionEvent event) { setChanged(); notifyObservers("history"); }
+    void replay(ActionEvent event) { setChanged(); notifyObservers("replay"); }
 
     @FXML
     void loadSavedGame(ActionEvent event) {
@@ -151,19 +154,19 @@ public class GameUX extends Observable {
     @FXML
     void changeBackgroundDark(ActionEvent event){
         mainPane.setStyle("-fx-background: " + DarkBackground);
-        mainPane.getContent().setStyle("-fx-background-color: " + DarkBackground);
-        loadVbox.setStyle("-fx-background-color: " + DarkBackground);
-        boardScrollPane.setStyle("-fx-background: " + DarkBackground);
-        centerPane.setStyle("-fx-background-color: " + DarkBackground);
+        backgroundColor = DarkBackground;
     }
 
     @FXML
     void changeBackgroundLight(ActionEvent event){
         mainPane.setStyle("-fx-background: " + LightBackground);
-        mainPane.getContent().setStyle("-fx-background-color: " + LightBackground);
-        loadVbox.setStyle("-fx-background-color: " + LightBackground);
-        boardScrollPane.setStyle("-fx-background: " + LightBackground);
-        centerPane.setStyle("-fx-background-color: " + LightBackground);
+        backgroundColor = LightBackground;
+    }
+
+    @FXML
+    void changeBackgroundRed(ActionEvent event){
+        mainPane.setStyle("-fx-background: " + RedBackground);
+        backgroundColor = RedBackground;
     }
 
     public void bindPlayerInfo(StringProperty stringProperty){
@@ -186,6 +189,10 @@ public class GameUX extends Observable {
     public void bindInRoundButton(BooleanBinding bool){
         newRoundBtn.disableProperty().bind(bool);
         undoBtn.disableProperty().bind(bool);
+    }
+
+    public void bindEndGameButton(BooleanBinding bool){
+        endGameButton.disableProperty().bind(bool);
     }
 
     public void bindRoundActionButtons(BooleanBinding bool){
@@ -227,22 +234,12 @@ public class GameUX extends Observable {
 
     public void setTeritoryColor(Integer terId, Color col){
         Button terButton = (Button)gameBoard.getChildren().get(terId-1);
+        String color = resolveColor(col);
 
-        if (col == Color.TRANSPARENT)
+        if (color == null)
             terButton.setStyle(null);
         else {
-            ArrayList<StringBuilder> rgbHexStr = new ArrayList<>(3);
-
-            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getRed()*255),16)));
-            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getGreen()*255),16)));
-            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getBlue()*255),16)));
-
-            for (StringBuilder c:rgbHexStr){
-                if(c.length() == 1){
-                    c.insert(0,"0");
-                }
-            }
-            terButton.setStyle("-fx-background-color: #" + rgbHexStr.get(0).toString() + rgbHexStr.get(1).toString() + rgbHexStr.get(2).toString());
+            terButton.setStyle("-fx-background-color: #" + color);
         }
     }
 
@@ -271,4 +268,60 @@ public class GameUX extends Observable {
 
     }
 
+    public void addPlayerToVbox(String playerName){
+        Button playerButton = new Button();
+        playerButton.setText(playerName);
+        playerButton.setPrefWidth(100);
+        playerButton.setOnAction(e->{
+            setChanged(); notifyObservers("playerInfo "+playerName);
+        });
+
+        playersBox.getChildren().add(playerButton);
+    }
+
+    public void clearPlayersBox(){
+        playersBox.getChildren().clear();
+    }
+
+    public void paintPlayerButton(Integer playerInd, Color col){
+        if (playerInd < playersBox.getChildren().size()){
+            clearPlayersButtonsColor();
+            String color = resolveColor(col);
+            playersBox.getChildren().get(playerInd).setStyle("-fx-background-color: #" + color );
+        }
+        else{
+            System.out.println("Invalid player ind: "+playerInd);
+        }
+    }
+
+    public void clearPlayersButtonsColor(){
+        playersBox.getChildren().forEach(b->b.setStyle(null));
+    }
+
+    public static String getBackgroundColor(){
+        return backgroundColor;
+    }
+
+    public static String resolveColor(Color col){
+        String strColor = new String();
+        if (col == Color.TRANSPARENT)
+            strColor = null;
+        else {
+            ArrayList<StringBuilder> rgbHexStr = new ArrayList<>(3);
+
+            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getRed()*255),16)));
+            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getGreen()*255),16)));
+            rgbHexStr.add(new StringBuilder(Long.toUnsignedString((int) (col.getBlue()*255),16)));
+
+            for (StringBuilder c:rgbHexStr){
+                if(c.length() == 1){
+                    c.insert(0,"0");
+                }
+            }
+
+            strColor = rgbHexStr.get(0).toString() + rgbHexStr.get(1).toString() + rgbHexStr.get(2).toString();
+        }
+
+        return strColor;
+    }
 }

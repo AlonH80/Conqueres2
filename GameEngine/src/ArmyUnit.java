@@ -301,4 +301,16 @@ public class ArmyUnit implements Cloneable, Serializable {
 
         return unitName;
     }
+
+    public static String showArmyDetails(Map<String, ArrayList<ArmyUnit>> army){
+        StringBuilder stringBuilder = new StringBuilder();
+        army.keySet().forEach(k->{
+            stringBuilder.append(k + " total power: ");
+            Integer totalPower = army.get(k).stream().mapToInt(v->v.getPower()).sum();
+            stringBuilder.append(totalPower.toString());
+            stringBuilder.append(System.lineSeparator());
+        });
+
+        return stringBuilder.toString();
+    }
 }

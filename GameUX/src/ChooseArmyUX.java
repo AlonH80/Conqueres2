@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -42,6 +43,7 @@ public class ChooseArmyUX implements Initializable {
         root.setController(this);
         mainPane = root.load();
         totalTurings = 0;
+        mainPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     public void setNotifier(Observer observer){
@@ -83,7 +85,8 @@ public class ChooseArmyUX implements Initializable {
         this.units = new HashMap<>();
         units.keySet().forEach(k ->{
             Label label = new Label();
-            label.textProperty().setValue(k);
+            label.textProperty().setValue(k + "(" + units.get((k)) + " turings each)");
+            label.setAlignment(Pos.CENTER_RIGHT);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
 
             spinner.valueProperty().addListener((obs, oldValue, newValue) ->

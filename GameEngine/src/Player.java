@@ -110,7 +110,8 @@ public class Player implements Cloneable, Serializable {
         if (ArmyUnit.getTotalArmyPower(defGroundUnits) >= ter.getArmyThreshold()) {
             ter.setConqueror(this);
             ter.setArmyOnGround(defGroundUnits);
-            return (name + " conquered territory " + ter.getId());
+            String armyDetails = ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(defGroundUnits));
+            return (name + " conquered territory " + ter.getId() + System.lineSeparator() + armyDetails);
         } else {
             refundUnits(defGroundUnits);
         }
@@ -245,6 +246,7 @@ public class Player implements Cloneable, Serializable {
         Player clonePlayer = new Player();
         clonePlayer.name = name;
         clonePlayer.turings = turings;
+        clonePlayer.color = color;
         //conqueredTeritories.forEach(ter->clonePlayer.conqueredTeritories.add(((TeritoryUnit)ter.clone())));
         return clonePlayer;
     }
@@ -263,7 +265,9 @@ public class Player implements Cloneable, Serializable {
         Boolean winnerFound = false;
         Boolean attackerWon = false;
         Map<String, ArrayList<ArmyUnit>> mapAttackers = ArmyUnit.getArmyByType(attackUnit);
+        String attackDetails = ArmyUnit.showArmyDetails(mapAttackers);
         Map<String, ArrayList<ArmyUnit>> mapDefenders = ArmyUnit.getArmyByType(teritory.getArmyOnGround());
+        String defenceDetails = ArmyUnit.showArmyDetails(mapDefenders);
         String strongestAttack;
         String strongestDefence;
         while (winnerFound == false && mapAttackers.size() > 0 && mapDefenders.size() > 0) {
@@ -330,6 +334,10 @@ public class Player implements Cloneable, Serializable {
             teritory.setConqueror(null);
         }
 
+        result += "Battle details: " + System.lineSeparator();
+        result += attackDetails  + System.lineSeparator();
+        result += defenceDetails;
+
         return result;
     }
 
@@ -371,10 +379,10 @@ public class Player implements Cloneable, Serializable {
             }
         }
 
-        return result;
-    }
+        result += "Battle details: " + System.lineSeparator();
+        result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(attackUnit))  + System.lineSeparator();
+        result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(teritory.getArmyOnGround()));
 
-    public String showBattleDetails(TeritoryUnit teritory, ArrayList<ArmyUnit> attackUnit, AttackingMethod attackingMethod, String result){
-        return "";
+        return result;
     }
 }

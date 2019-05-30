@@ -3,7 +3,7 @@
 }
 
 #pane{
-    -fx-background-color: #999999;
+    -fx-background: #555555;
 }
 
 #boardButton {
@@ -28,8 +28,4 @@
 #board{
 	-fx-Vgap: 10px;
 	-fx-Hgap: 10px;
-}
-
-ScrollPane{
-    -fx-background: #999999;
 }

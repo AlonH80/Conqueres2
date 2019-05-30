@@ -28,7 +28,7 @@ public class PopMessageUX implements Initializable {
         root = new FXMLLoader(getClass().getResource("popMessage.fxml"));
         root.setController(this);
         mPane = root.load();
-        //confirmButton.setOnAction(e->exitLoader());
+        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     @FXML
