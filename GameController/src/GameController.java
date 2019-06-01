@@ -237,6 +237,7 @@ public class GameController implements Observer {
                     Platform.runLater(() -> reShowPlayerInfo());
                     Platform.runLater(() -> roundsleft.setValue(gameEngine.getCurrRound()));
                     Platform.runLater(() -> replacePlayersButtons());
+                    Platform.runLater(() -> bindProperties());
                     Platform.runLater(() -> popMessage("Undo succesfully done."));
                 } else {
                     Platform.runLater(() -> popMessage("No rounds played yet. Undo wasn't performed."));
@@ -400,7 +401,7 @@ public class GameController implements Observer {
         Integer cyclesLeft = gameEngine.getCurrRound();
         gameEngine.endGame();
         roundsleft.setValue(gameEngine.getCurrRound());
-        if (!inRound.getValue() && cyclesLeft > 0){
+        if (!inRound.getValue() && cyclesLeft > 0 && GameEngine.gameState.size() > 1){
             GameEngine.gameState.remove(GameEngine.gameState.size() - 1);
         }
         inRound.setValue(false);

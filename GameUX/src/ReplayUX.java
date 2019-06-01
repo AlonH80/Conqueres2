@@ -105,7 +105,7 @@ public class ReplayUX extends Observable implements Initializable {
     @FXML
     void prevState(ActionEvent event) {
         --currState;
-        if (currState == 0){
+        if (currState <= 0){
             setPrevButton(false);
         }
         if (currState < maxState - 1){
