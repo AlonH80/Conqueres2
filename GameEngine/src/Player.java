@@ -165,19 +165,20 @@ public class Player implements Cloneable, Serializable {
 
     public void addPowerWidthwise(String unitType, Integer amountOfTurings, TeritoryUnit ter) {
         Boolean noChange = false;
-        Integer reduceAmount;
+        Float reduceAmount;
+        Float totTurings = amountOfTurings.floatValue();
         while (!noChange) {
             noChange = true;
             for (ArmyUnit unit : ter.getArmyOnGround()) {
-                if (amountOfTurings > 0 && unit.getType().equals(unitType)) {
-                    reduceAmount = ter.addPowerToUnit(unit, 2);
-                    amountOfTurings -= reduceAmount;
-                    turings -= reduceAmount;
+                if (totTurings > 0 && unit.getType().equals(unitType)) {
+                    reduceAmount = ter.addPowerToUnit(unit, 1f);
+                    totTurings -= reduceAmount;
                     if (reduceAmount > 0)
                         noChange = false;
                 }
             }
         }
+        turings -= totTurings.intValue();
     }
 
     public static Integer calculateUnitsPower(ArrayList<ArmyUnit> units) {

@@ -80,3 +80,7 @@
     -fx-text-fill: green;
     -fx-font-size: 14;
 }
+
+.table-view .column-header .label {
+    -fx-text-fill: black;
+}

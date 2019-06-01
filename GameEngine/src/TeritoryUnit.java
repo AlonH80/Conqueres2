@@ -152,20 +152,20 @@ public class TeritoryUnit implements Cloneable, Serializable {
         return armyOnGround.contains(someUnit);
     }
 
-    public Integer addPowerToUnit(ArmyUnit someUnit, Integer powerToAdd) {
-        Integer cost = 0;
+    public Float addPowerToUnit(ArmyUnit someUnit, Float powerToAdd) {
+        Double cost = 0.0;
         if (isArmyUnitExist(someUnit)) {
             if (someUnit.getPower() + powerToAdd > someUnit.getMaxFirePower()) {
-                powerToAdd = someUnit.getMaxFirePower() - someUnit.getPower();
-                someUnit.addPower(powerToAdd);
+                powerToAdd = (someUnit.getMaxFirePower() - someUnit.getPower())*100/100.0f;
+                someUnit.addPower(powerToAdd.intValue());
             } else {
-                someUnit.addPower(powerToAdd);
+                someUnit.addPower(powerToAdd.intValue());
             }
         } else {
-            powerToAdd = 0;
+            powerToAdd = 0f;
         }
-        cost += (int) ((double) powerToAdd * someUnit.getSinglePowerCost());
-        return cost;
+        cost += (powerToAdd * someUnit.getSinglePowerCost());
+        return cost.floatValue();
     }
 
     public Integer addNewUnit(ArmyUnit someUnit) {

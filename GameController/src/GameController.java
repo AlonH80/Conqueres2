@@ -83,19 +83,29 @@ public class GameController implements Observer {
     public void loadSavedGame(){
         System.out.println("Loading "+args.get(1));
         runCommand(()->{
-            gameEngine = FileHandling.fileToObj(args.get(1));
-            gameEngine.setPlayersColors();
-            gameEngine.setPropertiesVars();
-            bindProperties();
-            if (gameEngine.getGameSet().getValue()){
-                Platform.runLater(()->gameUX.setGameBoard(gameEngine.getBoard().getRows(),gameEngine.getBoard().getColumns()));
-                Platform.runLater(()->gameEngine.getBoard().getBoard().forEach(row->{
-                    row.forEach(cell->{gameUX.setTeritoryColor(cell.getId(), Color.WHITE, gameEngine.getTeritoryColor(cell.getId()), false);});
-                }));
-                Platform.runLater(()->gameUX.clearPlayersBox());
-                Platform.runLater(()->gameEngine.getPlayers().forEach(pla->gameUX.addPlayerToVbox(pla.getName())));
-                Platform.runLater(()->replayEnable.setValue(false));
-                Platform.runLater(()->nextPlayer());
+            try {
+                gameEngine = FileHandling.fileToObj(args.get(1));
+                gameEngine.setPlayersColors();
+                gameEngine.setPropertiesVars();
+                bindProperties();
+                if (gameEngine.getGameSet().getValue()) {
+                    Platform.runLater(() -> gameUX.setGameBoard(gameEngine.getBoard().getRows(), gameEngine.getBoard().getColumns()));
+                    Platform.runLater(() -> gameEngine.getBoard().getBoard().forEach(row -> {
+                        row.forEach(cell -> {
+                            gameUX.setTeritoryColor(cell.getId(), Color.WHITE, gameEngine.getTeritoryColor(cell.getId()), false);
+                        });
+                    }));
+                    Platform.runLater(() -> gameUX.clearPlayersBox());
+                    Platform.runLater(() -> gameEngine.getPlayers().forEach(pla -> gameUX.addPlayerToVbox(pla.getName())));
+                    Platform.runLater(() -> GameEngine.gameState.clear());
+                    Platform.runLater(() -> GameEngine.gameState.add((GameEngine)gameEngine.clone()));
+                    Platform.runLater(() -> replayEnable.setValue(false));
+                    Platform.runLater(() -> nextPlayer());
+                    Platform.runLater(() -> popMessage(args.get(1) + " successfully loaded"));
+                }
+            }
+            catch(Exception e){
+                Platform.runLater(() -> popMessage("Wasn't able to load " + args.get(1) + "."));
             }
         });
     }
@@ -112,6 +122,7 @@ public class GameController implements Observer {
     public void startNewGame(){
         System.out.println("Starting new game");
         runCommand(()->{
+                        //Platform.runLater(() -> GameEngine.gameState.clear());
                         gameEngine.setGame();
                         Integer roundsSet = gameEngine.getCurrRound();
                         Platform.runLater(()->roundsleft.setValue(roundsSet));
@@ -217,7 +228,7 @@ public class GameController implements Observer {
     public void undo(){
         runCommand(()-> {
             if (gameEngine.isGameSet()) {
-                if (GameEngine.gameState.size() > 0) {
+                if (GameEngine.gameState.size() > 1) {
                     //gameEngine = (GameEngine) GameEngine.getLastGameState().clone();
                     gameEngine = (GameEngine) GameEngine.gameState.get(GameEngine.gameState.size() - 2).clone();
                     GameEngine.gameState.remove(GameEngine.gameState.size() - 1);
@@ -226,14 +237,14 @@ public class GameController implements Observer {
                     Platform.runLater(() -> reShowPlayerInfo());
                     Platform.runLater(() -> roundsleft.setValue(gameEngine.getCurrRound()));
                     Platform.runLater(() -> replacePlayersButtons());
+                    Platform.runLater(() -> popMessage("Undo succesfully done."));
                 } else {
-                    popMessage("No rounds played yet. Undo wasn't performed.");
+                    Platform.runLater(() -> popMessage("No rounds played yet. Undo wasn't performed."));
                 }
             } else {
-                popMessage("Must start new game first.");
+                Platform.runLater(() -> popMessage("Must start new game first."));
             }
         });
-        popMessage("Undo succesfully done.");
     }
 
     public void exit(){
@@ -289,7 +300,7 @@ public class GameController implements Observer {
             });
         }
         else{
-            popMessage("Player don't have enough turings. Purchase wasn't made");
+            popMessage("Player don't have enough turings. Purchase wasn't made.");
             inRoundAction.setValue(false);
             nextPlayer();
         }
@@ -308,7 +319,7 @@ public class GameController implements Observer {
             inRoundAction.setValue(false);
         }
         else {
-            popMessage("Player don't have enough turings. Purchase wasn't made");
+            popMessage("Player don't have enough turings. Purchase wasn't made.");
         }
 
         nextPlayer();
@@ -370,7 +381,7 @@ public class GameController implements Observer {
             showArmyUX.launchStage();
         }
         catch(Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 
@@ -386,8 +397,12 @@ public class GameController implements Observer {
     }
 
     private void endGame(){
+        Integer cyclesLeft = gameEngine.getCurrRound();
         gameEngine.endGame();
         roundsleft.setValue(gameEngine.getCurrRound());
+        if (!inRound.getValue() && cyclesLeft > 0){
+            GameEngine.gameState.remove(GameEngine.gameState.size() - 1);
+        }
         inRound.setValue(false);
         replayEnable.setValue(true);
         gameUX.clearPlayersButtonsColor();
@@ -461,7 +476,6 @@ public class GameController implements Observer {
             replayUX.clearPlayersVbox();
             getState().getPlayers().forEach(pla -> replayUX.addPlayerToVbox(pla.getName(), pla.getColor()));
         }
-
     }
 
     private void paintTerritoriesAccordingToState(){

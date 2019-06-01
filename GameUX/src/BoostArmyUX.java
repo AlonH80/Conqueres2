@@ -59,8 +59,8 @@ public class BoostArmyUX implements Initializable {
     void confirmInput(ActionEvent event) {
         armyBoost = new HashMap<>();
         armyNew = new HashMap<>();
-        unitsBoost.keySet().forEach(k->armyBoost.put(k.getText().substring(0, k.getText().indexOf('(')),unitsBoost.get(k).getValue()));
-        unitsNew.keySet().forEach(k->armyNew.put(k.getText().substring(0, k.getText().indexOf('(')),unitsNew.get(k).getValue()));
+        unitsBoost.keySet().forEach(k->armyBoost.put(k.getText(),unitsBoost.get(k).getValue()));
+        unitsNew.keySet().forEach(k->armyNew.put(k.getText(),unitsNew.get(k).getValue()));
         pStage.close();
         notifier.notifyController("getBoostArmy");
     }
@@ -71,7 +71,7 @@ public class BoostArmyUX implements Initializable {
 
     public void setStage(Stage primaryStage) throws IOException {
         primaryStage.setTitle("Boost army on territory");
-        scene = new Scene(mPane,850,500);
+        scene = new Scene(mPane,805,445);
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
@@ -89,7 +89,7 @@ public class BoostArmyUX implements Initializable {
         unitsTotalRec.keySet().forEach(k ->{
             Label label = new Label();
             label.setPrefWidth(250);
-            label.textProperty().setValue(k + "(" + unitsRecEach.get((k)) + " turings each power unit)");
+            label.textProperty().setValue(k);// + "(" + unitsRecEach.get((k)) + " turings each power unit)");
             label.setAlignment(Pos.CENTER_LEFT);
             label.setWrapText(true);
             Spinner<Integer> spinner = new Spinner<>(0,unitsTotalRec.get(k),0);
@@ -109,7 +109,7 @@ public class BoostArmyUX implements Initializable {
         units.keySet().forEach(k ->{
             Label label = new Label();
             label.setPrefWidth(210);
-            label.textProperty().setValue(k + "(" + units.get((k)) + " turings each power unit)");
+            label.textProperty().setValue(k);//) + "(" + units.get((k)) + " turings each power unit)");
             label.setAlignment(Pos.CENTER_LEFT);
             label.setWrapText(true);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);

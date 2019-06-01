@@ -52,7 +52,7 @@ public class ChooseArmyUX implements Initializable {
     @FXML
     void confirmInput(ActionEvent event) {
         army = new HashMap<>();
-        units.keySet().forEach(k->army.put(k.getText().substring(0, k.getText().indexOf('(') - 1),units.get(k).getValue()));
+        units.keySet().forEach(k->army.put(k.getText(),units.get(k).getValue()));
         pStage.close();
         if (deterministAttack.selectedProperty().getValue() == true){
             notifier.notifyController("getArmy determinist");
@@ -86,7 +86,7 @@ public class ChooseArmyUX implements Initializable {
         units.keySet().forEach(k ->{
             Label label = new Label();
             label.setPrefHeight(25);
-            label.textProperty().setValue(k + " (" + units.get((k)) + " turings each)");
+            label.textProperty().setValue(k);
             label.setAlignment(Pos.CENTER_LEFT);
             label.setWrapText(true);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
