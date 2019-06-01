@@ -15,7 +15,7 @@ public class Player implements Cloneable, Serializable {
     private String name;
     private ArrayList<TeritoryUnit> conqueredTeritories;
     private Integer turings;
-    private Color color;
+    private transient Color color;
 
     public Player() {
         conqueredTeritories = new ArrayList<>();
@@ -109,7 +109,7 @@ public class Player implements Cloneable, Serializable {
             ter.setConqueror(this);
             ter.setArmyOnGround(defGroundUnits);
             String armyDetails = ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(defGroundUnits));
-            return (name + " conquered territory " + ter.getId() + System.lineSeparator() +"Army details: " + armyDetails);
+            return (name + " conquered territory " + ter.getId() + System.lineSeparator() +"Army details: " + System.lineSeparator() + armyDetails);
         } else {
             refundUnits(defGroundUnits);
         }
@@ -194,7 +194,7 @@ public class Player implements Cloneable, Serializable {
     public String toString() {
         StringBuilder retString = new StringBuilder(new String());
         retString.append(name + System.lineSeparator());
-        retString.append(color.toString() + System.lineSeparator());
+        retString.append(playerColor() + System.lineSeparator());
         retString.append("Turings: " + turings.toString() + System.lineSeparator());
         retString.append("Conquered territories: " + System.lineSeparator());
         conqueredTeritories.forEach(ter -> retString.append(ter.getId().toString() + " "));
@@ -270,8 +270,8 @@ public class Player implements Cloneable, Serializable {
         String strongestAttack;
         String strongestDefence;
         while (winnerFound == false && mapAttackers.size() > 0 && mapDefenders.size() > 0) {
-            strongestAttack = ArmyUnit.findStrongestUnitType(attackUnit);
-            strongestDefence = ArmyUnit.findStrongestUnitType(teritory.getArmyOnGround());
+            strongestAttack = ArmyUnit.findStrongestUnitType(mapAttackers);
+            strongestDefence = ArmyUnit.findStrongestUnitType(mapDefenders);
             if (mapAttackers.get(strongestAttack).get(0).getRank() > mapDefenders.get(strongestDefence).get(0).getRank()) {
                 attackerWon = true;
                 winnerFound = true;
@@ -325,17 +325,24 @@ public class Player implements Cloneable, Serializable {
             result = "Defender succeed to defend in determinist attack.";
         } else {
             teritory.setConqueror(null);
+            result = "Both players had the same amount of units - none of them posses the territory.";
         }
 
-        if (ArmyUnit.getTotalArmyPower(teritory.getArmyOnGround()) < teritory.getArmyThreshold()) {
+        if (teritory.getConqueror() != null && ArmyUnit.getTotalArmyPower(teritory.getArmyOnGround()) < teritory.getArmyThreshold()) {
             result += "However, the army doesn't have enough power to rule.";
             teritory.clearArmy();
             teritory.setConqueror(null);
         }
 
-        result += "Battle details: " + System.lineSeparator();
+        result += System.lineSeparator() + "Battle details: " + System.lineSeparator();
+        result += "Attacking unit: " + System.lineSeparator();
         result += attackDetails  + System.lineSeparator();
+        result += "Defending unit: " + System.lineSeparator();
         result += defenceDetails;
+        if (teritory.getConqueror() != null) {
+            result += "Current army on the territory: " + System.lineSeparator();
+            result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(teritory.getArmyOnGround()));
+        }
 
         return result;
     }
@@ -345,6 +352,8 @@ public class Player implements Cloneable, Serializable {
 
         Integer teritoryArmyPower = teritory.totalArmyPower();
         Integer attackPower = ArmyUnit.getTotalArmyPower(attackUnit);
+        String attackerDetails = "Attacking unit: " + System.lineSeparator() + ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(attackUnit));
+        String defenceDetails = "Defending unit: " + System.lineSeparator() + ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(teritory.getArmyOnGround()));
         Integer lottery = new Random().nextInt(teritoryArmyPower + attackPower);
         result = "Teritory unit power: " + teritoryArmyPower + ", Attack power: " + attackPower + ", Lottery: " + lottery + System.lineSeparator();
         if (lottery - teritoryArmyPower >= 0) {  // Attacker won
@@ -379,12 +388,32 @@ public class Player implements Cloneable, Serializable {
         }
 
         result += "Battle details: " + System.lineSeparator();
-        result += "Attacking unit: " + System.lineSeparator();
-        result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(attackUnit))  + System.lineSeparator();
+        result += attackerDetails;
         result += System.lineSeparator();
-        result += "Defending unit: " + System.lineSeparator();
-        result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(teritory.getArmyOnGround()));
+        result += defenceDetails;
+        if (teritory.getConqueror() != null) {
+            result += "Current army on the territory: " + System.lineSeparator();
+            result += ArmyUnit.showArmyDetails(ArmyUnit.getArmyByType(teritory.getArmyOnGround()));
+        }
 
         return result;
+    }
+
+    public String playerColor(){
+        if(color.equals(Color.RED)){
+            return "Red";
+        }
+        else if(color.equals(Color.BLUE)){
+            return "Blue";
+        }
+        else if(color.equals(Color.GREEN)){
+            return "Green";
+        }
+        else if(color.equals(Color.YELLOW)){
+            return "Yellow";
+        }
+        else{
+            return "None";
+        }
     }
 }

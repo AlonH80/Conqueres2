@@ -30,7 +30,7 @@ public class ShowArmyUX implements Initializable {
     @FXML private TableColumn<TableItem,String> singlePowerCol;
     @FXML private TableColumn<TableItem,String> totalUnitsCol;
     @FXML private TableColumn<TableItem,String> totalPowerCol;
-    @FXML private Pane mPane;
+    @FXML private ScrollPane mPane;
 
     private Stage pStage;
     private Scene scene;
@@ -39,7 +39,7 @@ public class ShowArmyUX implements Initializable {
         FXMLLoader root = new FXMLLoader(getClass().getResource("showArmy.fxml"));
         root.setController(this);
         mPane = root.load();
-        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
+        setSkin();
     }
 
     @FXML
@@ -143,6 +143,16 @@ public class ShowArmyUX implements Initializable {
 
         public String getTotalPower(){
             return totalPower.getValue();
+        }
+    }
+
+    private void setSkin(){
+        String style = GameUX.resolveSkin(GameUX.getSkinColor());
+        mPane.setId(style);
+        Button[] buttons = {closeButton};
+        for(Button btn:buttons){
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor()));
+            btn.getStyleClass().add(style);
         }
     }
 }

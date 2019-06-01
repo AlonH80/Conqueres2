@@ -4,11 +4,10 @@
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -23,12 +22,12 @@
          <bottom>
             <ButtonBar fx:id="gameAction" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="717.0" BorderPane.alignment="CENTER">
                <buttons>
-                  <Button id="inRoundButton" fx:id="newGameBtn" mnemonicParsing="false" onAction="#startNewGame" text="New game" textAlignment="CENTER" wrapText="true" />
-                  <Button id="inRoundButton" fx:id="newRoundBtn" mnemonicParsing="false" onAction="#startNewRound" text="New round" />
-                  <Button id="inRoundButton" fx:id="undoBtn" mnemonicParsing="false" onAction="#undo" text="Undo" />
-                  <Button id="inRoundButton" fx:id="replayBtn" mnemonicParsing="false" onAction="#replay" text="Replay" />
-                  <Button id="inRoundButton" fx:id="saveGameBtn" mnemonicParsing="false" onAction="#saveGame" text="Save game" />
-                  <Button id="inRoundButton" fx:id="endGameButton" mnemonicParsing="false" onAction="#endGame" text="End game" />
+                  <Button fx:id="newGameBtn" mnemonicParsing="false" onAction="#startNewGame" styleClass="inRoundButton" text="New game" textAlignment="CENTER" wrapText="true" />
+                  <Button fx:id="newRoundBtn" mnemonicParsing="false" onAction="#startNewRound" styleClass="inRoundButton" text="New round" wrapText="true" />
+                  <Button fx:id="undoBtn" mnemonicParsing="false" onAction="#undo" styleClass="inRoundButton" text="Undo" />
+                  <Button fx:id="replayBtn" mnemonicParsing="false" onAction="#replay" styleClass="inRoundButton" text="Replay" />
+                  <Button fx:id="saveGameBtn" mnemonicParsing="false" onAction="#saveGame" styleClass="inRoundButton" text="Save game" />
+                  <Button fx:id="endGameButton" mnemonicParsing="false" onAction="#endGame" styleClass="inRoundButton" text="End game" />
                </buttons>
                <cursor>
                   <Cursor fx:constant="DEFAULT" />
@@ -42,23 +41,23 @@
             <Cursor fx:constant="DEFAULT" />
          </cursor>
          <left>
-            <VBox prefHeight="537.0" prefWidth="127.0" spacing="40.0" BorderPane.alignment="TOP_LEFT">
+            <VBox prefHeight="588.0" prefWidth="153.0" spacing="20.0" BorderPane.alignment="TOP_LEFT">
                <children>
-                  <TitledPane fx:id="loadVbox" alignment="TOP_LEFT" animated="false" text="Main menu">
+                  <TitledPane id="dropDown" fx:id="loadVbox" alignment="TOP_LEFT" animated="false" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="105.0" prefWidth="150.0" text="Main menu" VBox.vgrow="NEVER">
                     <content>
-                        <VBox maxWidth="130.0" prefWidth="125.0">
+                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="79.0" prefWidth="148.0">
                            <children>
-                              <Button fx:id="loadXmlBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#loadXML" prefHeight="23.0" prefWidth="125.0" text="Load XML file" VBox.vgrow="NEVER">
+                              <Button fx:id="loadXmlBtn" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#loadXML" prefHeight="26.0" prefWidth="156.0" text="Load XML file" VBox.vgrow="NEVER">
                                  <font>
                                     <Font size="12.0" />
                                  </font>
                               </Button>
-                              <Button fx:id="loadSavelBtn" alignment="CENTER" mnemonicParsing="false" onAction="#loadSavedGame" prefHeight="27.0" prefWidth="125.0" text="Load saved game" textAlignment="CENTER">
+                              <Button fx:id="loadSavelBtn" alignment="CENTER" mnemonicParsing="false" onAction="#loadSavedGame" prefHeight="26.0" prefWidth="151.0" text="Load saved game" textAlignment="CENTER">
                                  <font>
                                     <Font size="12.0" />
                                  </font>
                               </Button>
-                              <Button alignment="CENTER" mnemonicParsing="false" onAction="#exit" prefHeight="27.0" prefWidth="125.0" text="Exit" textAlignment="CENTER">
+                              <Button alignment="CENTER" mnemonicParsing="false" onAction="#exit" prefHeight="26.0" prefWidth="149.0" text="Exit" textAlignment="CENTER">
                                  <font>
                                     <Font size="12.0" />
                                  </font>
@@ -70,7 +69,18 @@
                         </VBox>
                     </content>
                   </TitledPane>
-                  <VBox fx:id="playersBox" prefHeight="200.0" prefWidth="100.0" spacing="10.0" />
+                  <TitledPane fx:id="skinTitlePane" animated="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="108.0" prefWidth="151.0" text="Skin">
+                     <content>
+                        <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="82.0" prefWidth="149.0">
+                           <children>
+                              <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#changeSkinDark" prefHeight="27.0" prefWidth="150.0" text="Dark" />
+                              <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#changeSkinLight" prefHeight="27.0" prefWidth="150.0" text="Light" />
+                              <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#changeSkinUgly" prefHeight="27.0" prefWidth="150.0" text="Ugly" />
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+                  <VBox fx:id="playersBox" prefHeight="200.0" prefWidth="100.0" spacing="5.0" />
                </children>
             </VBox>
          </left>
@@ -91,7 +101,7 @@
                         <Button fx:id="armyButton" disable="true" mnemonicParsing="false" onAction="#showArmy" opacity="0.0" text="Army" />
                      </children>
                   </FlowPane>
-                  <Label fx:id="roundsLeft" prefWidth="113.0" text="Rounds left:" />
+                  <Label fx:id="roundsLeft" prefHeight="17.0" prefWidth="193.0" text="Rounds left:" />
                </children>
             </VBox>
          </right>
@@ -113,26 +123,20 @@
                <bottom>
                   <HBox id="inRoundBox" fx:id="roundAction" alignment="CENTER" prefHeight="30.0" prefWidth="300.0" spacing="10.0" BorderPane.alignment="CENTER">
                      <children>
-                        <Button id="inRoundButton" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#doNothing" text="Do nothing" textAlignment="CENTER" HBox.hgrow="NEVER">
+                        <Button alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#doNothing" prefWidth="105.0" styleClass="inRoundButton" text="Do nothing" textAlignment="CENTER" wrapText="true" HBox.hgrow="NEVER">
                            <HBox.margin>
                               <Insets />
                            </HBox.margin>
                         </Button>
-                        <Button id="inRoundButton" alignment="CENTER" mnemonicParsing="false" onAction="#boost" text="Boost" HBox.hgrow="NEVER" />
-                        <Button id="inRoundButton" alignment="CENTER" mnemonicParsing="false" onAction="#conquer" text="Conquer" HBox.hgrow="NEVER" />
+                        <Button id="inRoundButton" alignment="CENTER" mnemonicParsing="false" onAction="#boost" styleClass="inRoundButton" text="Boost" HBox.hgrow="NEVER" />
+                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#conquer" prefWidth="107.0" styleClass="inRoundButton" text="Conquer" HBox.hgrow="NEVER" />
                      </children>
                   </HBox>
                </bottom>
                <top>
-                  <HBox alignment="CENTER" prefHeight="29.0" prefWidth="408.0" spacing="10.0" BorderPane.alignment="CENTER">
+                  <HBox prefHeight="22.0" prefWidth="382.0" BorderPane.alignment="CENTER">
                      <children>
-                        <RadioButton mnemonicParsing="false" onAction="#changeBackgroundDark" selected="true" text="Dark">
-                           <toggleGroup>
-                              <ToggleGroup fx:id="backgroundTheme" />
-                           </toggleGroup>
-                        </RadioButton>
-                        <RadioButton mnemonicParsing="false" onAction="#changeBackgroundLight" text="Light" toggleGroup="$backgroundTheme" />
-                        <RadioButton mnemonicParsing="false" onAction="#changeBackgroundRed" text="Red" toggleGroup="$backgroundTheme" />
+                        <CheckBox fx:id="enableAnimation" mnemonicParsing="false" prefHeight="22.0" prefWidth="126.0" text="Animations" />
                      </children>
                   </HBox>
                </top>

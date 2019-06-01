@@ -6,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -17,7 +18,7 @@ public class PopMessageUX implements Initializable {
 
     @FXML private Button confirmButton;
     @FXML private Label messageLabel;
-    @FXML private Pane mPane;
+    @FXML private ScrollPane mPane;
 
     private Scene scene;
     private Stage pStage;
@@ -28,7 +29,7 @@ public class PopMessageUX implements Initializable {
         root = new FXMLLoader(getClass().getResource("popMessage.fxml"));
         root.setController(this);
         mPane = root.load();
-        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
+        setSkin();
     }
 
     @FXML
@@ -44,6 +45,7 @@ public class PopMessageUX implements Initializable {
 
     public void setMessageLabel(String mess){
         messageLabel.textProperty().setValue(mess);
+        messageLabel.setWrapText(true);
     }
 
     public void launchWindow() throws Exception {
@@ -63,5 +65,15 @@ public class PopMessageUX implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+    }
+
+    private void setSkin(){
+        String style = GameUX.resolveSkin(GameUX.getSkinColor());
+        mPane.setId(style);
+        Button[] buttons = {confirmButton};
+        for(Button btn:buttons){
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor()));
+            btn.getStyleClass().add(style);
+        }
     }
 }

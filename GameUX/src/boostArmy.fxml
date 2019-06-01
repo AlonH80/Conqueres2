@@ -2,32 +2,38 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<Pane id="pane" fx:id="mPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="621.0" stylesheets="@conqueresUI.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <Label fx:id="turingsLabel" layoutX="357.0" layoutY="364.0" prefHeight="17.0" prefWidth="123.0" text="Total turings: " />
-      <Button fx:id="confirmButton" layoutX="527.0" layoutY="359.0" mnemonicParsing="false" onAction="#confirmInput" text="Confirm" />
-      <SplitPane id="pane" dividerPositions="0.5" prefHeight="357.0" prefWidth="621.0">
-        <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-               <children>
-                  <VBox fx:id="recoverLabelsVBox" layoutY="28.0" prefHeight="327.0" prefWidth="147.0" />
-                  <VBox fx:id="recoverSpinners" layoutX="153.0" layoutY="29.0" prefHeight="319.0" prefWidth="147.0" />
-                  <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="31.0" prefWidth="303.0" text="Recover" textAlignment="CENTER" />
-               </children>
-            </AnchorPane>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-               <children>
-                  <Label alignment="CENTER" prefHeight="32.0" prefWidth="306.0" text="Buy new units" />
-                  <VBox fx:id="newUnitsLabelsVBox" layoutY="28.0" prefHeight="327.0" prefWidth="147.0" />
-                  <VBox fx:id="newUnitsSpinners" layoutX="153.0" layoutY="32.0" prefHeight="319.0" prefWidth="147.0" />
-               </children>
-            </AnchorPane>
-        </items>
-      </SplitPane>
-   </children>
-</Pane>
+
+<ScrollPane fx:id="mPane" prefHeight="447.0" prefWidth="808.0" stylesheets="@conqueresUI.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+   <content>
+      <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="445.0" prefWidth="805.0">
+         <children>
+            <Label fx:id="turingsLabel" layoutX="218.0" layoutY="402.0" prefHeight="24.0" prefWidth="391.0" text="Total turings: " />
+            <Button fx:id="confirmButton" layoutX="615.0" layoutY="404.0" mnemonicParsing="false" onAction="#confirmInput" text="Confirm" />
+            <SplitPane id="pane" dividerPositions="0.4838709677419355" prefHeight="353.0" prefWidth="808.0">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="351.0" prefWidth="404.0">
+                     <children>
+                        <VBox fx:id="recoverLabelsVBox" alignment="CENTER_LEFT" layoutY="28.0" prefHeight="327.0" prefWidth="250.0" spacing="5.0" />
+                        <VBox fx:id="recoverSpinners" alignment="CENTER" layoutX="248.0" layoutY="30.0" prefHeight="327.0" prefWidth="140.0" spacing="5.0" />
+                        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="31.0" prefWidth="385.0" text="Recover" textAlignment="CENTER" />
+                     </children>
+                  </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="351.0" prefWidth="404.0">
+                     <children>
+                        <Label alignment="CENTER" prefHeight="32.0" prefWidth="410.0" text="Buy new units" />
+                        <VBox fx:id="newUnitsLabelsVBox" alignment="CENTER_LEFT" layoutY="28.0" prefHeight="327.0" prefWidth="250.0" spacing="5.0" />
+                        <VBox fx:id="newUnitsSpinners" alignment="CENTER" layoutX="250.0" layoutY="29.0" prefHeight="325.0" prefWidth="150.0" spacing="5.0" />
+                     </children>
+                  </AnchorPane>
+              </items>
+            </SplitPane>
+         </children>
+      </Pane>
+   </content>
+</ScrollPane>

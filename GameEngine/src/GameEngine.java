@@ -38,11 +38,13 @@ public class GameEngine implements Cloneable, Serializable {
     protected Integer defaultArmyThreshold;
     protected Integer defaultProfit;
     protected transient BooleanProperty valid;
+    protected Boolean validBool;
     protected transient BooleanProperty gameSet;
+    protected Boolean gameSetBool;
     protected Integer currTurn;
     protected final Integer numOfChecks = 31;
     protected Integer checks = 0;
-    protected DoubleProperty loadProg;
+    protected transient DoubleProperty loadProg;
 
     public GameEngine(){
         players=new ArrayList<>(2);
@@ -52,7 +54,9 @@ public class GameEngine implements Cloneable, Serializable {
         territories=new ArrayList<>();
         army=new ArrayList<>();
         valid = new SimpleBooleanProperty(false);
+        validBool = false;
         gameSet = new SimpleBooleanProperty(false);
+        gameSetBool = false;
         loadProg = new SimpleDoubleProperty(0);
         leader = new AbstractMap.SimpleEntry<>("", 0);
     }
@@ -68,8 +72,8 @@ public class GameEngine implements Cloneable, Serializable {
     public void setGame() {
         setBoard();
         currRound = totalCycles;
-        //valid.setValue(true);
         gameSet.setValue(true);
+        gameSetBool = true;
         boardHistory.add(board.toString());
         leader = new AbstractMap.SimpleEntry<>("", 0);
         currTurn = players.size();
@@ -78,6 +82,7 @@ public class GameEngine implements Cloneable, Serializable {
             p.setTurings(initialFunds);
         });
         gameState.clear();
+        gameState.add((GameEngine)this.clone());
     }
 
     public BooleanProperty getGameSet(){
@@ -156,6 +161,7 @@ public class GameEngine implements Cloneable, Serializable {
         isGameOver();
         boardHistory.add(board.toString());
         setLeader();
+        gameState.add((GameEngine) this.clone());
     }
 
     public ArrayList<Integer> getPlayerTeritorysIds(String playerName){
@@ -272,11 +278,8 @@ public class GameEngine implements Cloneable, Serializable {
 
     public Boolean isGameOver(){
         if (currRound <= 0){
-            if (currRound == 0){
-                gameState.add((GameEngine)this.clone());
-                --currRound;
-            }
             gameSet.setValue(false);
+            gameSetBool = false;
             return true;
         }
         return false;
@@ -448,7 +451,9 @@ public class GameEngine implements Cloneable, Serializable {
         updateProgress(1);
         currTurn = players.size();
         valid.setValue(true);
+        validBool = true;
         gameSet.setValue(false);
+        gameSetBool = false;
     }
 
     public void checkValidArmy(GameDescriptor gameDescriptor) throws InvalidXMLException{
@@ -542,6 +547,7 @@ public class GameEngine implements Cloneable, Serializable {
 
         if (TeritoryUnit.findDuplicates(gameDescriptor.getGame().getTerritories()).size()>0){
             valid.setValue(false);
+            validBool = false;
             throw new InvalidXMLException("Duplicate teritory IDs: "+TeritoryUnit.findDuplicates(gameDescriptor.getGame().getTerritories()).toString());
         }
     }
@@ -592,7 +598,9 @@ public class GameEngine implements Cloneable, Serializable {
         territories.forEach(ter->cloneGame.territories.add((TeritoryUnit)ter.clone()));
         cloneGame.totalCycles = getTotalCycles();
         cloneGame.valid.setValue(isValid());
+        cloneGame.validBool = this.validBool;
         cloneGame.gameSet.setValue(isGameSet());
+        cloneGame.gameSetBool = gameSetBool;
         cloneGame.currTurn = this.currTurn;
         return cloneGame;
     }
@@ -610,7 +618,7 @@ public class GameEngine implements Cloneable, Serializable {
             else {
                 if (currTurn == 0) {
                     //currTurn = players.size();
-                    gameState.add((GameEngine) this.clone());
+                    //gameState.add((GameEngine) this.clone());
                     currTurn = 0;
                 }
                 players.get(currTurn).roundUp();
@@ -640,7 +648,7 @@ public class GameEngine implements Cloneable, Serializable {
                 return player.getColor();
             }
         }
-        return Color.TRANSPARENT;
+        return Color.WHITE;
     }
 
     public ArrayList<ArrayList<String>> getArmyDetails(Integer terId){
@@ -667,7 +675,10 @@ public class GameEngine implements Cloneable, Serializable {
     public Integer getAllUnitInBoardOfPlayer(Player player, String unitType){
         Integer totUnits = 0;
         totUnits = player.getConqueredTeritories().stream().mapToInt(
-                ter -> ArmyUnit.getArmyByType(ter.getArmyOnGround()).get(unitType).size()
+                ter -> {
+                    if (ArmyUnit.getArmyByType(ter.getArmyOnGround()).get(unitType)!=null) return ArmyUnit.getArmyByType(ter.getArmyOnGround()).get(unitType).size();
+                    return 0;
+                }
         ).sum();
         return totUnits;
     }
@@ -688,19 +699,38 @@ public class GameEngine implements Cloneable, Serializable {
             ter.clearArmy();
         });
         players.remove((int)currTurn);
+        --currTurn;
     }
 
     public void endGame(){
+        if (currRound > 0){
+            gameState.add((GameEngine)this.clone());
+        }
         currRound = 0;
         isGameOver();
     }
 
     public static GameEngine getState(Integer ind){
         if (ind >= gameState.size()){
-            throw new IndexOutOfBoundsException("Invalid input index for game state");
+            return null;
         }
 
         return gameState.get(ind);
+    }
+
+    public void setPlayersColors(){
+        for (int i = 0; i < players.size(); ++i){
+            players.get(i).setColor(colors[i]);
+        }
+    }
+
+    public void setPropertiesVars(){
+        gameSet = new SimpleBooleanProperty(gameSetBool);
+        valid = new SimpleBooleanProperty(validBool);
+        if (currTurn == players.size()) {
+            --totalCycles;
+        }
+        --currTurn;
     }
 }
 

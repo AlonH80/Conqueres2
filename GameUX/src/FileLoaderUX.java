@@ -35,7 +35,7 @@ public class FileLoaderUX implements Initializable {
         root.setController(this);
         mPane = root.load();
         info.setOnAction(e->exitLoader());
-        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
+        setSkin();
     }
 
     public void setStage(Stage primaryStage) throws IOException {
@@ -70,5 +70,15 @@ public class FileLoaderUX implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+    }
+
+    private void setSkin(){
+        String style = GameUX.resolveSkin(GameUX.getSkinColor());
+        mPane.setId(style);
+        Button[] buttons = {info};
+        for(Button btn:buttons){
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor()));
+            btn.getStyleClass().add(style);
+        }
     }
 }

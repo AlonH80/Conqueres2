@@ -3,10 +3,10 @@
 }
 
 #pane{
-    -fx-background: #555555;
+
 }
 
-#boardButton {
+.boardButton {
     -fx-pref-height: 40px;
     -fx-pref-width: 50px;
     -fx-min-height: 40px;
@@ -18,14 +18,65 @@
     -fx-spacing: 10px;
 }
 
-#inRoundButton {
+.inRoundButton {
     -fx-pref-height: 30px;
     -fx-pref-width: 100px;    
     -fx-min-height: 30px;
     -fx-min-width: 100px;
+    -fx-wrap-text: true;
 }
 
 #board{
 	-fx-Vgap: 10px;
 	-fx-Hgap: 10px;
+}
+
+#dropDowns{
+    -fx-pref-width: 150px;
+    -fx-pref-height: 30px;
+}
+
+.DarkSkinButton{
+
+}
+
+
+.LightSkinButton{
+    -fx-background-color:
+            #000000,
+            linear-gradient(#7edcea, #2fdb8f),
+            linear-gradient(#42dab7, #26de75),
+            linear-gradient(#39dcab, #82d768);
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+}
+.UglySkinButton{
+    -fx-background-color:
+            linear-gradient(#ffd65b, #e68400),
+            linear-gradient(#ffef84, #f2ba44),
+            linear-gradient(#ffea6a, #efaa22),
+            linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),
+            linear-gradient(from 0% 0% to 15% 50%, rgba(255,255,255,0.9), rgba(255,255,255,0));
+    -fx-text-fill: #654b00;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+#DarkSkin{
+    -fx-background:#555555;
+}
+
+#LightSkin{
+    -fx-background:#DDDDDD;
+    -fx-font-family: Charter;
+    -fx-font-style: Italic;
+    -fx-font-size: 12px;
+}
+
+#UglySkin{
+    -fx-background: #AA1111;
+    -fx-font-family: Menlo;
+    -fx-font-weight: bold;
+    -fx-text-fill: green;
+    -fx-font-size: 14;
 }

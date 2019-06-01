@@ -44,7 +44,7 @@ public class ReplayUX extends Observable implements Initializable {
         root = new FXMLLoader(getClass().getResource("replay.fxml"));
         root.setController(this);
         mPane = root.load();
-        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
+        setSkin();
         this.maxState = currState;
         this.currState = this.maxState-1;
         currPlayer = null;
@@ -138,7 +138,7 @@ public class ReplayUX extends Observable implements Initializable {
                 Button cell = new Button();
                 final Integer currId = i*columns+j+1;
                 cell.setText(currId.toString());
-                cell.setId("boardButton");
+                cell.getStyleClass().add("boardButton");
                 cell.setAlignment(Pos.CENTER);
                 cell.setOnAction(e->{currTerritory = currId;setChanged(); notifyObservers("replayTerritory");});
                 gameBoard.add(cell, j, i);
@@ -184,5 +184,23 @@ public class ReplayUX extends Observable implements Initializable {
 
     public void clearPlayersVbox(){
         playersVbox.getChildren().clear();
+    }
+
+    private void setSkin(){
+        String style = GameUX.resolveSkin(GameUX.getSkinColor());
+        mPane.setId(style);
+        Button[] buttons = {prevButton, nextButton};
+        for(Button btn:buttons){
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor()));
+            btn.getStyleClass().add(style);
+        }
+        gameBoard.getChildren().forEach(btn->{
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor())+"Button");
+            btn.getStyleClass().add(style);
+        });
+        playersVbox.getChildren().forEach(btn->{
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor())+"Button");
+            btn.getStyleClass().add(style);
+        });
     }
 }

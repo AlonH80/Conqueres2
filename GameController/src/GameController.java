@@ -45,16 +45,7 @@ public class GameController implements Observer {
         inRoundAction = new SimpleBooleanProperty(false);
         replayEnable = new SimpleBooleanProperty(false);
         roundsleft = new SimpleIntegerProperty(0);
-        gameUX.bindPlayerInfo(currPlayerInfo);
-        gameUX.bindTeritoryInfo(currTerritoryInfo);
-        gameUX.bindInGameButtonsAccess(gameEngine.getValid().not().or(gameEngine.getGameSet()));
-        gameUX.bindLoadMenuButtonsAccess(gameEngine.getGameSet().and(gameEngine.getGameSet()));
-        gameUX.bindInRoundButton(gameEngine.getGameSet().not().or(inRound));
-        gameUX.bindRoundActionButtons(inRound.not().or(inRoundAction));
-        gameUX.bindRoundsLeftLabel(roundsleft.add(0));
-        gameUX.bindToDisableForefitButton(inRound.not());
-        gameUX.bindEndGameButton(gameEngine.getGameSet().not());
-        gameUX.bindDisableReplay(replayEnable.not());
+        bindProperties();
         args = new ArrayList<>();
         threads = new ArrayList<>();
     }
@@ -91,7 +82,22 @@ public class GameController implements Observer {
 
     public void loadSavedGame(){
         System.out.println("Loading "+args.get(1));
-        runCommand(()->{gameEngine = FileHandling.fileToObj(args.get(1));});
+        runCommand(()->{
+            gameEngine = FileHandling.fileToObj(args.get(1));
+            gameEngine.setPlayersColors();
+            gameEngine.setPropertiesVars();
+            bindProperties();
+            if (gameEngine.getGameSet().getValue()){
+                Platform.runLater(()->gameUX.setGameBoard(gameEngine.getBoard().getRows(),gameEngine.getBoard().getColumns()));
+                Platform.runLater(()->gameEngine.getBoard().getBoard().forEach(row->{
+                    row.forEach(cell->{gameUX.setTeritoryColor(cell.getId(), Color.WHITE, gameEngine.getTeritoryColor(cell.getId()), false);});
+                }));
+                Platform.runLater(()->gameUX.clearPlayersBox());
+                Platform.runLater(()->gameEngine.getPlayers().forEach(pla->gameUX.addPlayerToVbox(pla.getName())));
+                Platform.runLater(()->replayEnable.setValue(false));
+                Platform.runLater(()->nextPlayer());
+            }
+        });
     }
 
     public void loadXML() throws Exception {
@@ -109,7 +115,7 @@ public class GameController implements Observer {
                         gameEngine.setGame();
                         Integer roundsSet = gameEngine.getCurrRound();
                         Platform.runLater(()->roundsleft.setValue(roundsSet));
-                        Platform.runLater(()->{if (currTerritoryId != 0) reShowTerritory();});
+                        Platform.runLater(()->{if (currTerritoryId != 0) reShowTerritory(false, Color.WHITE);});
         });
         Platform.runLater(()->gameUX.setGameBoard(gameEngine.getBoard().getRows(),gameEngine.getBoard().getColumns()));
         Platform.runLater(()->gameUX.clearPlayersBox());
@@ -119,19 +125,19 @@ public class GameController implements Observer {
 
     public void territory(){
         currTerritoryId = Integer.parseInt(args.get(1));
-        showTerritory();
+        showTerritory(false, Color.WHITE);
     }
 
-    private void reShowTerritory(){
+    private void reShowTerritory(Boolean animate, Color prev){
         if (currTerritoryId!=0) {
-            showTerritory();
+            showTerritory(animate, prev);
         }
     }
 
-    private void showTerritory(){
+    private void showTerritory(Boolean animate, Color prev){
         Platform.runLater(() -> currTerritoryInfo.setValue(gameEngine.getGroundInfo(currTerritoryId)));
         Color terColor = gameEngine.getTeritoryColor(currTerritoryId);
-        gameUX.setTeritoryColor(currTerritoryId, gameEngine.getTeritoryColor(currTerritoryId));
+        gameUX.setTeritoryColor(currTerritoryId, prev, terColor, animate);
 
         if (gameEngine.getCurrTurn() < gameEngine.getPlayers().size()) {
             gameUX.setArmyShowButton(gameEngine.getPlayerTeritoryIds(gameEngine.getCurrTurn()).contains(currTerritoryId));
@@ -172,8 +178,6 @@ public class GameController implements Observer {
             boostArmy.setNotifier(this);
             boostArmy.setRecoverSpinners(unitsRecTotal, unitsRecEach, gameEngine.getPlayerAmountOfTurings(gameEngine.getCurrTurn()));
             boostArmy.setNewUnitsSpinners(unitsNew, gameEngine.getPlayerAmountOfTurings(gameEngine.getCurrTurn()));
-            /*boostArmy.bindToTuringsLabel(new SimpleIntegerProperty(boostArmy.getSpinners().getChildren().stream().
-                    mapToInt(k->((Spinner<Integer>)(((HBox)k).getChildren().get(1))).getValue()).sum()));*/
             boostArmy.launchLoader();
         }
     }
@@ -197,8 +201,16 @@ public class GameController implements Observer {
             chooseArmy.setArmyUnitsSpinners(units);
             chooseArmy.launchLoader();
         }
+        else if(currTerritoryId == 0){
+            popMessage("Press one of the territories first!");
+        }
         else {
-            popMessage("This territory is not neighboured to one of your territories! ");
+            if (gameEngine.getPlayers().get(gameEngine.getCurrTurn()).getConqueredTeritoriesIds().size() == 0){
+                popMessage("Must select one of the outer territories!");
+            }
+            else{
+                popMessage("This territory is not neighboured to one of your territories! ");
+            }
         }
     }
 
@@ -206,15 +218,19 @@ public class GameController implements Observer {
         runCommand(()-> {
             if (gameEngine.isGameSet()) {
                 if (GameEngine.gameState.size() > 0) {
-                    gameEngine = (GameEngine) GameEngine.getLastGameState().clone();
+                    //gameEngine = (GameEngine) GameEngine.getLastGameState().clone();
+                    gameEngine = (GameEngine) GameEngine.gameState.get(GameEngine.gameState.size() - 2).clone();
                     GameEngine.gameState.remove(GameEngine.gameState.size() - 1);
-                    reShowTerritory();
-                    Platform.runLater(()->roundsleft.setValue(gameEngine.getCurrRound()));
+                    //GameEngine.gameState.remove(GameEngine.gameState.size() - 2);
+                    Platform.runLater(() -> reShowTerritory(false, Color.WHITE));
+                    Platform.runLater(() -> reShowPlayerInfo());
+                    Platform.runLater(() -> roundsleft.setValue(gameEngine.getCurrRound()));
+                    Platform.runLater(() -> replacePlayersButtons());
                 } else {
-                    System.out.println("No rounds played yet. Undo wasn't performed.");
+                    popMessage("No rounds played yet. Undo wasn't performed.");
                 }
             } else {
-                System.out.println("Start new game first.");
+                popMessage("Must start new game first.");
             }
         });
         popMessage("Undo succesfully done.");
@@ -242,20 +258,41 @@ public class GameController implements Observer {
         }
     }
 
-    private void getArmy(){
-        Map<String,Integer> army = chooseArmy.getArmy();
-        String result = new String();
+    private void getArmy() throws InterruptedException{
+        if(chooseArmy.getTotalTurings() <= gameEngine.getPlayerAmountOfTurings(gameEngine.getCurrTurn())) {
+            Map<String, Integer> army = chooseArmy.getArmy();
+            StringBuilder result = new StringBuilder();
+            Color prev = gameEngine.getTeritoryColor(currTerritoryId);
 
-        if (args.get(1).compareTo("lottery") == 0) {
-            result = gameEngine.playerConquer(currTerritoryId, army, Player.AttackingMethod.LOTTERY);
+            if (args.get(1).compareTo("lottery") == 0) {
+                result.append(gameEngine.playerConquer(currTerritoryId, army, Player.AttackingMethod.LOTTERY));
+            } else if (args.get(1).compareTo("determinist") == 0) {
+                result.append(gameEngine.playerConquer(currTerritoryId, army, Player.AttackingMethod.CALCULATED));
+            }
+            inRoundAction.setValue(false);
+            runCommand(() -> {
+                if (gameUX.getEnableAnimate()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception e) {
+                    }
+                }
+                reShowTerritory(true, prev);
+                if (gameUX.getEnableAnimate()) {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (Exception e) {
+                    }
+                }
+                Platform.runLater(() -> nextPlayer());
+                Platform.runLater(() -> popMessage(result.toString()));
+            });
         }
-        else if (args.get(1).compareTo("determinist") == 0) {
-            result = gameEngine.playerConquer(currTerritoryId, army, Player.AttackingMethod.CALCULATED);
+        else{
+            popMessage("Player don't have enough turings. Purchase wasn't made");
+            inRoundAction.setValue(false);
+            nextPlayer();
         }
-        inRoundAction.setValue(false);
-
-        nextPlayer();
-        popMessage(result);
     }
 
     private void noActionOnChooseWindow(){
@@ -263,11 +300,17 @@ public class GameController implements Observer {
     }
 
     private void getBoostArmy(){
-        Map<String,Integer> armyNew= boostArmy.getArmyNew();
-        Map<String,Integer> armyBoost= boostArmy.getArmyBoost();
-        armyBoost.keySet().forEach(un->gameEngine.addPower(gameEngine.getPlayerName(gameEngine.getCurrTurn()),currTerritoryId,un,armyBoost.get(un)));
-        gameEngine.addNewUnits(gameEngine.getPlayerName(gameEngine.getCurrTurn()), currTerritoryId, armyNew);
-        inRoundAction.setValue(false);
+        if (boostArmy.getTotalTurings() <= gameEngine.getPlayerAmountOfTurings(gameEngine.getCurrTurn())) {
+            Map<String, Integer> armyNew = boostArmy.getArmyNew();
+            Map<String, Integer> armyBoost = boostArmy.getArmyBoost();
+            armyBoost.keySet().forEach(un -> gameEngine.addPower(gameEngine.getPlayerName(gameEngine.getCurrTurn()), currTerritoryId, un, armyBoost.get(un)));
+            gameEngine.addNewUnits(gameEngine.getPlayerName(gameEngine.getCurrTurn()), currTerritoryId, armyNew);
+            inRoundAction.setValue(false);
+        }
+        else {
+            popMessage("Player don't have enough turings. Purchase wasn't made");
+        }
+
         nextPlayer();
     }
 
@@ -275,20 +318,20 @@ public class GameController implements Observer {
         if (!gameEngine.isGameOver()) {
             gameEngine.nextTurn();
             if (gameEngine.getCurrTurn() == gameEngine.getPlayers().size()) {
-                currPlayerInfo.setValue("");
                 gameUX.clearPlayersButtonsColor();
                 inRound.setValue(false);
                 roundsleft.setValue(gameEngine.getCurrRound());
-                if (gameEngine.isGameOver()) announceWinner();
+                if (gameEngine.isGameOver()) endGame();
             } else {
-                currPlayerInfo.setValue(gameEngine.getPlayers().get(gameEngine.getCurrTurn()).toString());
                 gameUX.paintPlayerButton(gameEngine.getCurrTurn(), gameEngine.getPlayerColor(gameEngine.getCurrTurn()));
+                inRound.setValue(true);
             }
         }
         else{
             announceWinner();
         }
-        reShowTerritory();
+        reShowTerritory(false, Color.WHITE);
+        reShowPlayerInfo();
     }
 
     private void popMessage(String message){
@@ -332,22 +375,19 @@ public class GameController implements Observer {
     }
 
     private void forefit(){
+        gameEngine.getPlayerTeritoryIds(gameEngine.getCurrTurn()).forEach(terId->gameUX.setTeritoryColor(terId, Color.WHITE, Color.WHITE, false));
         gameEngine.removePlayer();
-        if (gameEngine.getPlayers().size() == 0){
+        if (gameEngine.getPlayers().size() == 1){
             endGame();
         }
-        gameUX.clearPlayersBox();
-        gameEngine.getPlayers().forEach(pla->gameUX.addPlayerToVbox(pla.getName()));
-        playerInfo();
-        gameUX.paintPlayerButton(gameEngine.getCurrTurn(), gameEngine.getPlayerColor(gameEngine.getCurrTurn()));
-        reShowTerritory();
-        //nextPlayer();
+
+        replacePlayersButtons();
+        nextPlayer();
     }
 
     private void endGame(){
         gameEngine.endGame();
         roundsleft.setValue(gameEngine.getCurrRound());
-        currPlayerInfo.setValue("");
         inRound.setValue(false);
         replayEnable.setValue(true);
         gameUX.clearPlayersButtonsColor();
@@ -356,21 +396,47 @@ public class GameController implements Observer {
 
     private void announceWinner(){
         StringBuilder announcment = new StringBuilder("Match results: ");
-        if (gameEngine.getLeader().getKey().substring(0, 3).equals("Tie")){
-            announcment.append(gameEngine.getLeader().getKey());
+        if (gameEngine.getPlayers().size() == 1){
+            announcment.append("Technical win to " + gameEngine.getPlayers().get(0).getName());
         }
         else {
-            announcment.append(gameEngine.getLeader().getKey() + " won.");
+            if (gameEngine.getLeader().getKey().substring(0, 3).equals("Tie")) {
+                announcment.append(gameEngine.getLeader().getKey());
+            } else {
+                announcment.append(gameEngine.getLeader().getKey() + " won.");
+            }
+            announcment.append(System.lineSeparator());
+            announcment.append("Total profit from conquered territories: " + gameEngine.getLeader().getValue().toString());
         }
-        announcment.append(System.lineSeparator());
-        announcment.append("Total profit from conquered territories: "+gameEngine.getLeader().getValue().toString());
-        popMessage(announcment.toString());
+
+        runCommand(() -> {
+            if (!gameEngine.getLeader().getKey().substring(0, 3).equals("Tie")) {
+                gameUX.glowWinnersTerritories(gameEngine.findPlayer(gameEngine.getLeader().getKey()).getConqueredTeritoriesIds());
+                if (gameUX.getEnableAnimate()) {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            Platform.runLater(() -> popMessage(announcment.toString()));
+        });
     }
 
     private void playerInfo(){
         //String playerName = args.get(1);
         //currPlayerInfo.setValue(gameEngine.findPlayer(playerName).toString());
-        currPlayerInfo.setValue(gameEngine.getPlayers().get(gameEngine.currTurn).toString());
+        currPlayerInfo.setValue(gameEngine.findPlayer(args.get(1)).toString());
+    }
+
+    private void reShowPlayerInfo(){
+        try {
+            String playerName = currPlayerInfo.getValue().substring(0, currPlayerInfo.getValue().indexOf(System.lineSeparator()));
+            currPlayerInfo.setValue(gameEngine.findPlayer(playerName).toString());
+        }
+        catch (NullPointerException|StringIndexOutOfBoundsException e){
+            currPlayerInfo.setValue("");
+        }
     }
 
     private void replay() throws Exception{
@@ -388,11 +454,13 @@ public class GameController implements Observer {
     }
 
     private void changeState(){
-        paintTerritoriesAccordingToState();
-        replayPlayerInfo();
-        replayTerritory();
-        replayUX.clearPlayersVbox();
-        getState().getPlayers().forEach(pla->replayUX.addPlayerToVbox(pla.getName(), pla.getColor()));
+        if (getState() != null) {
+            paintTerritoriesAccordingToState();
+            replayPlayerInfo();
+            replayTerritory();
+            replayUX.clearPlayersVbox();
+            getState().getPlayers().forEach(pla -> replayUX.addPlayerToVbox(pla.getName(), pla.getColor()));
+        }
 
     }
 
@@ -415,5 +483,23 @@ public class GameController implements Observer {
             GameEngine currState = getState();
             replayUX.setTerritoryInfo(currState.getGroundInfo(replayUX.getCurrTerritory()));
         }
+    }
+
+    private void replacePlayersButtons(){
+        gameUX.clearPlayersBox();
+        gameEngine.getPlayers().forEach(pla->gameUX.addPlayerToVbox(pla.getName()));
+    }
+
+    private void bindProperties(){
+        gameUX.bindPlayerInfo(currPlayerInfo);
+        gameUX.bindTeritoryInfo(currTerritoryInfo);
+        gameUX.bindInGameButtonsAccess(gameEngine.getValid().not().or(gameEngine.getGameSet()));
+        gameUX.bindLoadMenuButtonsAccess(gameEngine.getGameSet().and(gameEngine.getGameSet()));
+        gameUX.bindInRoundButton(gameEngine.getGameSet().not().or(inRound));
+        gameUX.bindRoundActionButtons(inRound.not().or(inRoundAction));
+        gameUX.bindRoundsLeftLabel(roundsleft.add(0));
+        gameUX.bindToDisableForefitButton(inRound.not());
+        gameUX.bindEndGameButton(gameEngine.getGameSet().not());
+        gameUX.bindDisableReplay(replayEnable.not());
     }
 }

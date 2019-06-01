@@ -34,7 +34,7 @@ public class ChooseArmyUX implements Initializable {
     private Map<Label,Spinner<Integer>> units;
     private Map<String,Integer> army = null;
     ChooseArmyNotifier notifier;
-    Integer totalTurings;
+    private Integer totalTurings;
     Stage pStage;
     Scene scene;
 
@@ -43,7 +43,6 @@ public class ChooseArmyUX implements Initializable {
         root.setController(this);
         mainPane = root.load();
         totalTurings = 0;
-        mainPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     public void setNotifier(Observer observer){
@@ -79,6 +78,7 @@ public class ChooseArmyUX implements Initializable {
             }
         });
         primaryStage.setScene(scene);
+        setSkin();
     }
 
     public void setArmyUnitsSpinners(Map<String,Integer> units){
@@ -87,7 +87,8 @@ public class ChooseArmyUX implements Initializable {
             Label label = new Label();
             label.setPrefHeight(25);
             label.textProperty().setValue(k + " (" + units.get((k)) + " turings each)");
-            label.setAlignment(Pos.CENTER);
+            label.setAlignment(Pos.CENTER_LEFT);
+            label.setWrapText(true);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
 
             spinner.valueProperty().addListener((obs, oldValue, newValue) ->
@@ -151,4 +152,17 @@ public class ChooseArmyUX implements Initializable {
         chooseAttackBox.setOpacity(1);
     }
 
+    private void setSkin(){
+        String style = GameUX.resolveSkin(GameUX.getSkinColor());
+        mainPane.setId(style);
+        Button[] buttons = {confirmButton};
+        for(Button btn:buttons){
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor()));
+            btn.getStyleClass().add(style);
+        }
+    }
+
+    public Integer getTotalTurings(){
+        return totalTurings;
+    }
 }

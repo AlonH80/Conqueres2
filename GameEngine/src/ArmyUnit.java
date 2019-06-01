@@ -66,7 +66,7 @@ public class ArmyUnit implements Cloneable, Serializable {
     }
 
     public Double getSinglePowerCost() {
-        return singlePowerCost;
+        return Math.round(singlePowerCost*100)/100.0d;
     }
 
     public void setSinglePowerCost(Double value){
@@ -291,10 +291,24 @@ public class ArmyUnit implements Cloneable, Serializable {
         return unitName;
     }
 
+    public static String findStrongestUnitType(Map<String, ArrayList<ArmyUnit>> army){
+        Integer maxRank = 0;
+        String unitName = new String();
+        for(String key:army.keySet()){
+            if (army.get(key).get(0).getRank() > maxRank){
+                unitName = key;
+                maxRank = army.get(key).get(0).getRank();
+            }
+        }
+
+        return unitName;
+    }
+
     public static String showArmyDetails(Map<String, ArrayList<ArmyUnit>> army){
         StringBuilder stringBuilder = new StringBuilder();
         army.keySet().forEach(k->{
-            stringBuilder.append(k + " total power: ");
+            stringBuilder.append(k + " - Number of units: " + army.get(k).size());
+            stringBuilder.append(", total power: ");
             Integer totalPower = army.get(k).stream().mapToInt(v->v.getPower()).sum();
             stringBuilder.append(totalPower.toString());
             stringBuilder.append(System.lineSeparator());

@@ -13,6 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -26,7 +27,7 @@ import java.util.*;
 
 public class BoostArmyUX implements Initializable {
 
-    @FXML private Pane mPane;
+    @FXML private ScrollPane mPane;
     @FXML private Label turingsLabel;
     @FXML private VBox recoverLabelsVBox;
     @FXML private VBox recoverSpinners;
@@ -48,7 +49,6 @@ public class BoostArmyUX implements Initializable {
         root = new FXMLLoader(getClass().getResource("boostArmy.fxml"));
         root.setController(this);
         mPane = root.load();
-        mPane.setStyle("-fx-background: "+GameUX.getBackgroundColor());
     }
 
     public void setNotifier(Observer observer){
@@ -59,8 +59,8 @@ public class BoostArmyUX implements Initializable {
     void confirmInput(ActionEvent event) {
         armyBoost = new HashMap<>();
         armyNew = new HashMap<>();
-        unitsBoost.keySet().forEach(k->armyBoost.put(k.getText().substring(0, k.getText().indexOf('(')-1),unitsBoost.get(k).getValue()));
-        unitsNew.keySet().forEach(k->armyNew.put(k.getText().substring(0, k.getText().indexOf('(')-1),unitsNew.get(k).getValue()));
+        unitsBoost.keySet().forEach(k->armyBoost.put(k.getText().substring(0, k.getText().indexOf('(')),unitsBoost.get(k).getValue()));
+        unitsNew.keySet().forEach(k->armyNew.put(k.getText().substring(0, k.getText().indexOf('(')),unitsNew.get(k).getValue()));
         pStage.close();
         notifier.notifyController("getBoostArmy");
     }
@@ -71,7 +71,7 @@ public class BoostArmyUX implements Initializable {
 
     public void setStage(Stage primaryStage) throws IOException {
         primaryStage.setTitle("Boost army on territory");
-        scene = new Scene(mPane,700,400);
+        scene = new Scene(mPane,850,500);
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
@@ -81,15 +81,17 @@ public class BoostArmyUX implements Initializable {
             }
         });
         primaryStage.setScene(scene);
+        setSkin();
     }
 
     public void setRecoverSpinners(Map<String,Integer> unitsTotalRec, Map<String,Double> unitsRecEach, Integer totTurings){
         this.unitsBoost = new HashMap<>();
         unitsTotalRec.keySet().forEach(k ->{
             Label label = new Label();
-            label.setPrefWidth(25);
+            label.setPrefWidth(250);
             label.textProperty().setValue(k + "(" + unitsRecEach.get((k)) + " turings each power unit)");
-            label.setAlignment(Pos.CENTER);
+            label.setAlignment(Pos.CENTER_LEFT);
+            label.setWrapText(true);
             Spinner<Integer> spinner = new Spinner<>(0,unitsTotalRec.get(k),0);
             spinner.valueProperty().addListener((obs, oldValue, newValue) ->{
                     updateTuringsLabel(oldValue, newValue, 1);
@@ -106,9 +108,10 @@ public class BoostArmyUX implements Initializable {
         this.unitsNew = new HashMap<>();
         units.keySet().forEach(k ->{
             Label label = new Label();
-            label.setPrefWidth(25);
-            label.textProperty().setValue(k + " (" + units.get((k)) + " turings each power unit)");
-            label.setAlignment(Pos.CENTER);
+            label.setPrefWidth(210);
+            label.textProperty().setValue(k + "(" + units.get((k)) + " turings each power unit)");
+            label.setAlignment(Pos.CENTER_LEFT);
+            label.setWrapText(true);
             Spinner<Integer> spinner = new Spinner<>(0,units.get(k),0);
             spinner.valueProperty().addListener((obs, oldValue, newValue) -> {
                 updateTuringsLabel(oldValue, newValue, units.get(k));
@@ -160,5 +163,19 @@ public class BoostArmyUX implements Initializable {
     private void updateTuringsLabel(Integer oldValue, Integer newValue, Integer purch){
         totalTurings += (newValue - oldValue)*purch;
         turingsLabel.textProperty().setValue("Total turings: "+totalTurings.toString());
+    }
+
+    private void setSkin(){
+        String style = GameUX.resolveSkin(GameUX.getSkinColor());
+        mPane.setId(style);
+        Button[] buttons = {confirmButton};
+        for(Button btn:buttons){
+            btn.getStyleClass().remove(GameUX.resolveSkin(GameUX.getPrevSkinColor()));
+            btn.getStyleClass().add(style);
+        }
+    }
+
+    public Integer getTotalTurings() {
+        return totalTurings;
     }
 }

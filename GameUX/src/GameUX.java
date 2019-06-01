@@ -1,3 +1,6 @@
+import javafx.animation.FadeTransition;
+import javafx.animation.FillTransition;
+import javafx.animation.ScaleTransition;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -14,9 +17,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.fxml.FXML;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,14 +32,11 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class GameUX extends Observable {
-    public enum BackgroundColor {Dark, Light}
-
-    public static final String DarkBackground = "#555555";
-    public static final String LightBackground = "#DDDDDD";
-    public static final String RedBackground = "#AA1111";
+    public enum Skin {DARK, LIGHT, UGLY}
 
     @FXML private ButtonBar gameAction;
     @FXML private TitledPane loadVbox;
+    @FXML private TitledPane skinTitlePane;
     @FXML private Label playerInfo;
     @FXML private Label teritoryInfo;
     @FXML private GridPane gameBoard;
@@ -52,11 +55,14 @@ public class GameUX extends Observable {
     @FXML private ScrollPane boardScrollPane;
     @FXML private BorderPane centerPane;
     @FXML private VBox playersBox;
+    @FXML private CheckBox enableAnimation;
 
+    private Button[] buttons;
     private FXMLLoader root;
     private ScrollPane mainPane;
     private Stage pStage;
-    private static String backgroundColor = DarkBackground;
+    private static Skin skin = Skin.DARK;
+    private static Skin prevSkin = Skin.DARK;
 
     public GameUX(){
         root = new FXMLLoader(getClass().getResource("conqueresUI.fxml"));
@@ -152,21 +158,27 @@ public class GameUX extends Observable {
     }
 
     @FXML
-    void changeBackgroundDark(ActionEvent event){
-        mainPane.setStyle("-fx-background: " + DarkBackground);
-        backgroundColor = DarkBackground;
+    void changeSkinDark(ActionEvent event){
+        prevSkin = skin;
+        skin = Skin.DARK;
+        mainPane.setId("DarkSkin");
+        changeButtonsStyle();
     }
 
     @FXML
-    void changeBackgroundLight(ActionEvent event){
-        mainPane.setStyle("-fx-background: " + LightBackground);
-        backgroundColor = LightBackground;
+    void changeSkinLight(ActionEvent event){
+        prevSkin = skin;
+        skin = Skin.LIGHT;
+        mainPane.setId("LightSkin");
+        changeButtonsStyle();
     }
 
     @FXML
-    void changeBackgroundRed(ActionEvent event){
-        mainPane.setStyle("-fx-background: " + RedBackground);
-        backgroundColor = RedBackground;
+    void changeSkinUgly(ActionEvent event){
+        prevSkin = skin;
+        skin = Skin.UGLY;
+        mainPane.setId("UglySkin");
+        changeButtonsStyle();
     }
 
     public void bindPlayerInfo(StringProperty stringProperty){
@@ -211,11 +223,11 @@ public class GameUX extends Observable {
         addObserver(observer);
     }
 
-    public void setStage(Stage primaryStage) throws IOException {
+    public void setStage(Stage primaryStage) throws IOException, IllegalStateException {
         pStage = primaryStage;
         primaryStage.setTitle("Conqueres");
-        //disableRoundAction();
         Scene scene = new Scene(mainPane,800,800);
+        mainPane.setId(resolveSkin(skin));
         primaryStage.setScene(scene);
     }
 
@@ -225,25 +237,57 @@ public class GameUX extends Observable {
             gameBoard.addRow(i);
             for (int j = 0;j < columns; ++j){
                 gameBoard.addColumn(j);
-                Button cell = new Button();
+                StackPane cell = new StackPane();
+                Button cellButton = new Button();
+                Rectangle cellRect = new Rectangle();
                 final Integer currId = i*columns+j+1;
-                cell.setText(currId.toString());
-                cell.setId("boardButton");
+                cellButton.setText(currId.toString());
+                cellButton.setStyle("-fx-background-color: Transparent");
+                cellRect.setStyle("-fx-fill: White");
+                cellButton.getStyleClass().add("boardButton");
+                cellRect.setWidth(50);
+                cellRect.setHeight(40);
                 cell.setAlignment(Pos.CENTER);
-                cell.setOnAction(e->{setChanged(); notifyObservers("territory "+currId);});
+                cellButton.setOnAction(e->{setChanged(); notifyObservers("territory "+currId);});
+                cell.getChildren().add(cellRect);
+                cell.getChildren().add(cellButton);
                 gameBoard.add(cell, j, i);
             }
         }
     }
 
-    public void setTeritoryColor(Integer terId, Color col){
-        Button terButton = (Button)gameBoard.getChildren().get(terId-1);
+    public void setTeritoryColor(Integer terId,Color prev, Color col,Boolean animate){
         String color = resolveColor(col);
 
-        if (color == null)
-            terButton.setStyle(null);
+        if (color == null || col.equals(Color.WHITE))
+            if (animate && enableAnimation.isSelected()){
+                FillTransition ft = new FillTransition(Duration.millis(2000), (Rectangle)((StackPane)gameBoard.getChildren().get(terId - 1)).getChildren().get(0));
+                ft.setFromValue(prev);
+                ft.setToValue(Color.WHITE);
+                ft.setCycleCount(1);
+                ft.setOnFinished(e-> {
+                    ((StackPane)gameBoard.getChildren().get(terId - 1)).getChildren().get(0).setStyle("-fx-background-color: #" + color);
+                });
+                ft.play();
+            }
+            else {
+                ((StackPane)gameBoard.getChildren().get(terId - 1)).getChildren().get(0).setStyle("-fx-fill: White");
+            }
         else {
-            terButton.setStyle("-fx-background-color: #" + color);
+            if (animate && enableAnimation.isSelected()) {
+                FillTransition ft = new FillTransition(Duration.millis(2000), (Rectangle)((StackPane)gameBoard.getChildren().get(terId - 1)).getChildren().get(0));
+                ft.setFromValue(prev);
+                ft.setToValue(col);
+                ft.setCycleCount(1);
+                ft.setOnFinished(e-> {
+                    ((StackPane)gameBoard.getChildren().get(terId - 1)).getChildren().get(0).setStyle("-fx-background-color: #" + color);
+                });
+                ft.play();
+
+            }
+            else {
+                ((StackPane)gameBoard.getChildren().get(terId - 1)).getChildren().get(0).setStyle("-fx-fill: #" + color);
+            }
         }
     }
 
@@ -271,7 +315,7 @@ public class GameUX extends Observable {
     public void addPlayerToVbox(String playerName){
         Button playerButton = new Button();
         playerButton.setText(playerName);
-        playerButton.setPrefWidth(100);
+        playerButton.setPrefWidth(150);
         playerButton.setOnAction(e->{
             setChanged(); notifyObservers("playerInfo "+playerName);
         });
@@ -298,8 +342,12 @@ public class GameUX extends Observable {
         playersBox.getChildren().forEach(b->b.setStyle(null));
     }
 
-    public static String getBackgroundColor(){
-        return backgroundColor;
+    public static Skin getSkinColor(){
+        return skin;
+    }
+
+    public static Skin getPrevSkinColor(){
+        return prevSkin;
     }
 
     public static String resolveColor(Color col){
@@ -323,5 +371,62 @@ public class GameUX extends Observable {
         }
 
         return strColor;
+    }
+
+    private void changeButtonsStyle(){
+        Button[] buttons = {newGameBtn, newRoundBtn, replayBtn, saveGameBtn, loadXmlBtn, loadSavelBtn, undoBtn, forefitButton, armyButton, endGameButton};
+        StringBuilder style = new StringBuilder(resolveSkin(skin));
+        style.append("Button");
+
+            for(Button btn:buttons){
+                btn.getStyleClass().remove(resolveSkin(prevSkin)+"Button");
+                btn.getStyleClass().add(style.toString());
+            }
+            //if (gameBoard.getChildren().size() > 0) gameBoard.getChildren().forEach(btn->btn.setId(style.toString()));
+            /*if (playersBox.getChildren().size() > 0) playersBox.getChildren().forEach(btn->{
+                btn.getStyleClass().remove(resolveSkin(prevSkin)+"Button");
+                btn.getStyleClass().add(style.toString());
+            });*/
+            ((VBox)skinTitlePane.getContent()).getChildren().forEach(btn->{
+                btn.getStyleClass().remove(resolveSkin(prevSkin)+"Button");
+                btn.getStyleClass().add(style.toString());
+            });
+            ((VBox)loadVbox.getContent()).getChildren().forEach(btn->{
+                btn.getStyleClass().remove(resolveSkin(prevSkin)+"Button");
+                btn.getStyleClass().add(style.toString());
+            });
+            roundAction.getChildren().forEach(btn->{
+                btn.getStyleClass().remove(resolveSkin(prevSkin)+"Button");
+                btn.getStyleClass().add(style.toString());
+            });
+    }
+
+    public Boolean getEnableAnimate(){
+        return enableAnimation.isSelected();
+    }
+
+    public static String resolveSkin(Skin skin) {
+        switch (skin) {
+            case DARK:
+                return "DarkSkin";
+            case LIGHT:
+                return "LightSkin";
+            case UGLY:
+                return "UglySkin";
+        }
+        return "DarkSkin";
+    }
+
+    public void glowWinnersTerritories(ArrayList<Integer> tersIds){
+        if (getEnableAnimate()) {
+            tersIds.forEach(terId -> {
+                ScaleTransition st = new ScaleTransition(Duration.millis(250), ((StackPane) gameBoard.getChildren().get(terId - 1)).getChildren().get(0));
+                st.setByX(1.1);
+                st.setByY(1.1);
+                st.setCycleCount(4);
+                st.setAutoReverse(true);
+                st.play();
+            });
+        }
     }
 }
